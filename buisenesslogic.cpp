@@ -10,6 +10,7 @@ char** strSplit(char*, size_t *, const char);
 size_t calculating_region_lines_number(FuncArgument* fa);
 char***memory_alloc(FuncArgument*fa);
 char**get_headers(FuncArgument* fa);
+double calc_median(std::vector<double> vectorForMedian,int count_lines);
 
 FuncReturningValue* entryPoint(FuncType ft, FuncArgument* fa)
 {
@@ -68,8 +69,9 @@ FuncReturningValue* getDataFromFile(const char* filename)
 
 FuncReturningValue* solve(FuncArgument* fa)
 {
-    int k=0;
-    double min=atof(fa->data[0][fa->column-1]),max=atof(fa->data[0][fa->column-1]);
+    int count_lines=0;
+    double min=atof(fa->data[fa->region_number][fa->column-1]),max=atof(fa->data[fa->region_number][fa->column-1]),current;
+    std::vector<double> vectorForMedian;
     FuncReturningValue *frv = (FuncReturningValue *)malloc(sizeof(FuncReturningValue));
     if (frv!=NULL)
     {
@@ -79,20 +81,20 @@ FuncReturningValue* solve(FuncArgument* fa)
             {
                 if (strstr(fa->data[i][1],fa->region)!=NULL)
                 {
-                    *(data_for_chosen_region+k)=fa->data[i];
-                    k++;
-                    if (atof(fa->data[i][fa->column-1])<min)
-                        min=atof(fa->data[i][fa->column-1]);
-                    else if (atof(fa->data[i][fa->column-1])>max)
-                        max=atof(fa->data[i][fa->column-1]);
+                    *(data_for_chosen_region+count_lines)=fa->data[i];
+                    count_lines++;
+                    current=atof(fa->data[i][fa->column-1]);
+                    current<min? min=current:current>max? max=current:max;
+                    vectorForMedian.push_back(current);
                 }
             }
             frv->headers=get_headers(fa);
             frv->fields_num=fa->fields_num;
-            frv->len=k-1;
+            frv->len=count_lines-1;
             frv->data=data_for_chosen_region;
             frv->solution_min=min;
             frv->solution_max=max;
+            frv->solution_median=calc_median(vectorForMedian,count_lines-1);
         }
     }
     return frv;
@@ -196,7 +198,6 @@ char** strSplit(char* a_str, size_t *len, const char a_delim)
 
 size_t calculating_region_lines_number(FuncArgument* fa)
 {
-    //calculating_existence_of_the_chosen_region_in_the_file
     size_t lines=0;
     for (size_t i=0;i<fa->len;i++)
     {
@@ -237,4 +238,15 @@ char**get_headers(FuncArgument* fa)
         headers=strSplit(line, &count, ',');
     }
     return headers;
+}
+
+double calc_median(std::vector<double> vectorForMedian,int count_lines)
+{
+    double median;
+    sort(vectorForMedian.begin(), vectorForMedian.end());
+    if((count_lines % 2) ==0)
+        median = vectorForMedian[count_lines/2];
+    else
+        median = (vectorForMedian[count_lines/2] + vectorForMedian[count_lines/2 + 1]) / 2;
+    return median;
 }

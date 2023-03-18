@@ -121,14 +121,15 @@ void MainWindow::on_btn_calc_metrics_clicked()
             .filename=QstringToCharArray(ui->lbl_filename->text()),
             .data = getDataFromTable(),
             .region=QstringToCharArray(ui->box_region->currentText()),
-            .column=(ui->box_column->currentText()).toInt(),
+            .column=(size_t)(ui->box_column->currentText()).toInt(),
             .len = (size_t)ui->tb_widget->rowCount(),
-            .fields_num = (size_t)ui->tb_widget->columnCount()
+            .fields_num = (size_t)ui->tb_widget->columnCount(),
+            .region_number=(size_t)calculateRegions().indexOf(ui->box_region->currentText())
         };
         FuncReturningValue* frv = entryPoint(calculateData, &fa);
         ui->lbl_min->setText("Min: " + QString::number(frv->solution_min));
         ui->lbl_max->setText("Max: " + QString::number(frv->solution_max));
-        ui->lbl_medium->setText("Medium: " + QString::number(frv->solution_medium));
+        ui->lbl_median->setText("Median: " + QString::number(frv->solution_median));
         showData(frv);
         entryPoint(cleanData, &fa);
         free(frv);

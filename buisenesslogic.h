@@ -1,6 +1,8 @@
-#include <stdio.h>
+#include <iostream>
 #include <string.h>
 #include <stdlib.h>
+#include <vector>
+#include <algorithm>
 #define SIZE 1024
 #define STRLEN 120
 
@@ -17,7 +19,7 @@ typedef struct
     char **headers;                                   // заголовки таблицы (функция getData())
     double solution_min;                              // результаты вычислений (функция calculateData())
     double solution_max;
-    double solution_medium;
+    double solution_median;
     size_t len;                                       // число строк в таблице
     size_t fields_num;                                // число столбцов в таблице
 } FuncReturningValue;
@@ -29,9 +31,10 @@ typedef struct
     char **headers;                                    // заголовки таблицы (функция getData())
     char **solution;                                   // результат вычислений (для освобождения памяти)
     char *region;                                      //регион по которому вычисляются метрики
-    int column;                                        //колонка по которой вычисляются метрики
+    size_t column;                                        //колонка по которой вычисляются метрики
     size_t len;                                        // число строк в таблице
     size_t fields_num;                                 // число столбцов в таблице
+    size_t region_number;                              //индекс региона в списке
 } FuncArgument;
 
 

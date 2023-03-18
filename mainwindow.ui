@@ -158,13 +158,6 @@
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_4">
      <item>
-      <widget class="QLabel" name="lbl_max">
-       <property name="text">
-        <string>Max value</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QLabel" name="lbl_min">
        <property name="text">
         <string>Min value</string>
@@ -172,9 +165,16 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="lbl_medium">
+      <widget class="QLabel" name="lbl_max">
        <property name="text">
-        <string>Medium value</string>
+        <string>Max value</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="lbl_median">
+       <property name="text">
+        <string>Median value</string>
        </property>
       </widget>
      </item>
