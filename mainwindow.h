@@ -2,19 +2,9 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "QMessageBox"
 #include "buisenesslogic.h"
+#include "QMessageBox"
 #include <QFileDialog>
-#include <QRegExp>
-#include "QStandardItemModel"
-#include "QStandardItem"
-#include <QTableWidget>
-#include <QFile>
-#include <QtAlgorithms>
-#include <QVector>
-#include <QDebug>
-#include <string>
-#include <functional>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

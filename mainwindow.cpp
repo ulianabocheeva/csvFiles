@@ -53,12 +53,10 @@ void MainWindow::on_btn_Load_data_clicked()
     QString filename=ui->lbl_filename->text();
     if (!filename.isEmpty()){
         FuncArgument fa = {
-            .filename = QstringToCharArray(filename)//Приводим строку с путем к файлу от типа QString к стандартному типу строки
+            .filename = QstringToCharArray(filename)
         };
         FuncReturningValue* frv = entryPoint(getData, &fa);
-        //Выводим на экран данные
         showData(frv);
-
         FuncArgument fa2 = {
             .filename = fa.filename,
             .data = frv->data,
@@ -84,7 +82,6 @@ void MainWindow::showData(FuncReturningValue* frv)
         for (size_t i = 0; i < frv->len; i++)
         {
             QStringList currentRow = ConvertRowToQTFormat(frv->data[i], frv->fields_num);
-            if (!currentRow.empty()){
                 ui->tb_widget->setRowCount(i + 1);
                 for (int j = 0; j < currentRow.count(); j++)
                 {
@@ -93,26 +90,26 @@ void MainWindow::showData(FuncReturningValue* frv)
                     item->setText(currentRow.at(j));
                     ui->tb_widget->setItem(i, j, item);
                 }
-            }
         }
         QStringList regions=calculateRegions(),columns=calculateColumns(frv);
         ui->box_region->addItems(regions);
         ui->box_column->addItems(columns);
     }
 }
+
 char*** MainWindow::getDataFromTable()
 {
     char ***data = (char ***)malloc(sizeof(char**) * ui->tb_widget->rowCount());
     for (size_t i = 0; i < (size_t)ui->tb_widget->rowCount(); i++)
     {
-        data[i] = (char **)malloc(sizeof(char*) * ui->tb_widget->columnCount());
+        *(data+i) = (char **)malloc(sizeof(char*) * ui->tb_widget->columnCount());
         for (size_t j = 0; j < (size_t)ui->tb_widget->columnCount(); j++)
         {
             //Получаем значение в i-ой строке и j-ом столбце
             QTableWidgetItem *item = ui->tb_widget->item(i,j);
             //Приводим значение ячейки к стандартному типу строки
             char* str = QstringToCharArray(item->text());
-            data[i][j] = str;
+            *(*(data+i)+j) = str;
         }
     }
     return data;
@@ -120,8 +117,8 @@ char*** MainWindow::getDataFromTable()
 
 void MainWindow::on_btn_calc_metrics_clicked()
 {
-
     FuncArgument fa = {
+            .filename=QstringToCharArray(ui->lbl_filename->text()),
             .data = getDataFromTable(),
             .region=QstringToCharArray(ui->box_region->currentText()),
             .column=(ui->box_column->currentText()).toInt(),
@@ -131,23 +128,26 @@ void MainWindow::on_btn_calc_metrics_clicked()
         FuncReturningValue* frv = entryPoint(calculateData, &fa);
         ui->lbl_min->setText("Min: " + QString::number(frv->solution_min));
         ui->lbl_max->setText("Max: " + QString::number(frv->solution_max));
-
+        ui->lbl_medium->setText("Medium: " + QString::number(frv->solution_medium));
+        showData(frv);
         entryPoint(cleanData, &fa);
         free(frv);
         ui->btn_calc_metrics->setEnabled(false);
 }
 
-QStringList MainWindow::calculateColumns(FuncReturningValue* frv){
+QStringList MainWindow::calculateColumns(FuncReturningValue* frv)
+{
     QStringList columns;
-    for (size_t i=2;i<frv->fields_num;i++){
+    for (size_t i=2;i<frv->fields_num;i++)
         columns.append(QString::number(i+1));
-    }
     return columns;
 }
 
-QStringList MainWindow::calculateRegions(){
+QStringList MainWindow::calculateRegions()
+{
     QStringList regions;
-    for (size_t i=0;i<(size_t)ui->tb_widget->rowCount();i++){
+    for (size_t i=0;i<(size_t)ui->tb_widget->rowCount();i++)
+    {
         QTableWidgetItem *item = ui->tb_widget->item(i,1);
         regions.append(item->text());
     }
