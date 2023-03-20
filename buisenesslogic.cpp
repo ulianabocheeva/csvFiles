@@ -143,8 +143,9 @@ char** read_csv(FILE* fp, size_t *lines){
 
 void clean2DArray(char **arr, size_t size)
 {
-    //for (size_t i = 0;i < size; i++)
-        //free(*(arr+i));
+    for (size_t i = 0;i < size; i++)
+        if (strstr((*arr+i),"")==NULL)
+            free(*(arr+i));
     free(arr);
 }
 
@@ -158,9 +159,9 @@ void clean3DArray(char ***arr, size_t sizeX, size_t sizeY)
 //Функция разбития строки на массив слов
 char** strSplit(char* a_str, size_t *len, const char a_delim)
 {
-    char** result = 0;
+    char** result = 0;//** потому что из строки создается матрица
     size_t count = 0;
-    char* tmp = a_str;
+    char* tmp = a_str;//перезаписываю строку в tmp потому что потом сравниваю
     char* last_comma = 0;
     char delim[2];
     *delim = a_delim;
@@ -176,21 +177,23 @@ char** strSplit(char* a_str, size_t *len, const char a_delim)
         tmp++;
     }
     *len = count + 1;
-
+    /* Добавьте пробел для завершающего токена. */
     count += last_comma < (a_str + strlen(a_str) - 1);
+    /* Добавьте пробел для завершения нулевой строки, так называемой
+   знает, где заканчивается список возвращаемых строк. */
     count++;
     result = (char**)malloc(sizeof(char*) * count);
     if (result)
     {
         size_t idx  = 0;
-        char* token = strtok(a_str, delim);
+        char* token = strtok(a_str, delim);//разбиение строки на части по указанному разделителю.
 
         while (token)
         {
-            *(result + idx++) = strdup(token);
+            *(result + idx++) = strdup(token);//дублирование строки
             token = strtok(0, delim);
         }
-        *(result + idx) = 0;
+        *(result + idx) = 0;//терминальный ноль в конец строки
     }
 
     return result;

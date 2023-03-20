@@ -1,12 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#define SIZEOF(a) sizeof(a)/sizeof(*a)
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow){
     ui->setupUi(this);
-    //connect(ui->btn_choseFileName,SIGNAL(clicked()),this,SLOT());
 }
 
 MainWindow::~MainWindow()
@@ -18,11 +16,13 @@ QStringList ConvertRowToQTFormat(char **row, size_t size)
 {
     QStringList qsl = {};
     char str[]="\n";
-    for(size_t i = 0; i < size; i++){
+    for (size_t i = 0; i < size; i++)
+    {
         qsl.append(QString::fromUtf8(*(row+i)));
-        if (i!=size-1 && strstr(*(row+i),str)!=NULL){
+        if (i!=size-1 && strstr(*(row+i),str)!=NULL)
+        {
             qsl.clear();
-            for(size_t i = 0; i < size; qsl.append("error"),i++);
+            for (size_t i = 0; i < size; qsl.append("error"),i++);
             break;
         }
     }
@@ -131,6 +131,7 @@ void MainWindow::on_btn_calc_metrics_clicked()
         ui->lbl_max->setText("Max: " + QString::number(frv->solution_max));
         ui->lbl_median->setText("Median: " + QString::number(frv->solution_median));
         showData(frv);
+        //draw();
         entryPoint(cleanData, &fa);
         free(frv);
         ui->btn_calc_metrics->setEnabled(false);
@@ -156,3 +157,17 @@ QStringList MainWindow::calculateRegions()
     regions.removeAll("error");
     return regions;
 }
+
+/*void MainWindow::draw()
+{
+    QPixmap *pix = new QPixmap(500, 500);
+    QPainter paint(pix);
+    paint.fillRect(0, 0, 500, 500, QBrush(QColor(Qt::GlobalColor::white)));
+    paint.setPen(*(new QColor(255, 34, 255, 255)));
+    paint.drawRect(15, 15, 100, 100);
+    paint.setPen(QColor(Qt::GlobalColor::red));
+    paint.drawLine(10, 10, 300, 300);
+    paint.drawPoint(450, 450);
+    paint.drawText(250, 200, "Red text");
+    ui->lbl_for_draw->setPixmap(*pix);
+}*/

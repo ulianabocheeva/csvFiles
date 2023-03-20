@@ -5,6 +5,7 @@
 #include "buisenesslogic.h"
 #include "QMessageBox"
 #include <QFileDialog>
+//#include <QPainter>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -30,6 +31,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
     void showData(FuncReturningValue*);
+    void draw();
     char*** getDataFromTable();
     QStringList calculateColumns(FuncReturningValue*);
     QStringList calculateRegions();
