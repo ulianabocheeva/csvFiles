@@ -40,6 +40,7 @@ FuncReturningValue* getDataFromFile(const char* filename)
     if (frv!=NULL)
     {
         FILE* fp = fopen(filename, "r");
+        fp==NULL? frv=NULL:frv;
         if (fp!=NULL)
         {
             char **rawData = read_csv(fp, &lines);
@@ -70,8 +71,10 @@ FuncReturningValue* getDataFromFile(const char* filename)
 FuncReturningValue* solve(FuncArgument* fa)
 {
     int count_lines=0;
-    double min=atof(fa->data[fa->region_number][fa->column-1]),max=atof(fa->data[fa->region_number][fa->column-1]),current;
+    double min=atof(fa->data[fa->region_number][fa->column]),max=atof(fa->data[fa->region_number][fa->column]),current;
     std::vector<double> vectorForMedian;
+    if (isalpha(*(fa->data[fa->region_number][fa->column])))
+        return NULL;
     FuncReturningValue *frv = (FuncReturningValue *)malloc(sizeof(FuncReturningValue));
     if (frv!=NULL)
     {
@@ -83,14 +86,14 @@ FuncReturningValue* solve(FuncArgument* fa)
                 {
                     *(data_for_chosen_region+count_lines)=fa->data[i];
                     count_lines++;
-                    current=atof(fa->data[i][fa->column-1]);
+                    current=atof(fa->data[i][fa->column]);
                     current<min? min=current:current>max? max=current:max;
                     vectorForMedian.push_back(current);
                 }
             }
             frv->headers=get_headers(fa);
             frv->fields_num=fa->fields_num;
-            frv->len=count_lines-1;
+            frv->len=count_lines;
             frv->data=data_for_chosen_region;
             frv->solution_min=min;
             frv->solution_max=max;
@@ -110,6 +113,8 @@ void clean(FuncArgument* args)
         clean2DArray(args->headers, args->fields_num);
     if (args->solution != NULL)
         clean2DArray(args->solution, args->fields_num);
+    if (args->region != NULL)
+        free(args->region);
 }
 
 char** read_csv(FILE* fp, size_t *lines){

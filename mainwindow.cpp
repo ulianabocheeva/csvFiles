@@ -12,6 +12,18 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+char* QstringToCharArray(QString qstr)
+{
+    char *str = (char*)malloc(sizeof(char)*(qstr.size() + 1));
+    size_t i;
+    for (i = 0; i < qstr.size(); i++)
+    {
+        *(str+i) = qstr.at(i).unicode();
+    }
+    str[i] = 0;
+    return str;
+}
+
 QStringList ConvertRowToQTFormat(char **row, size_t size)
 {
     QStringList qsl = {};
@@ -26,19 +38,13 @@ QStringList ConvertRowToQTFormat(char **row, size_t size)
             break;
         }
     }
-    return qsl;
-}
-
-char* QstringToCharArray(QString qstr)
-{
-    char *str = (char*)malloc(sizeof(char)*(qstr.size() + 1));
-    size_t i;
-    for (i = 0; i < qstr.size(); i++)
-    {
-        str[i] = qstr.at(i).unicode();
+    if (strstr(QstringToCharArray(qsl.at(size-1)),str)!=NULL){
+        QString tmp=qsl.at(size-1);
+        qsl.removeLast();
+        qsl.append(tmp.split(str));
+        qsl.removeLast();
     }
-    str[i] = 0;
-    return str;
+    return qsl;
 }
 
 void MainWindow::on_btn_choseFileName_clicked()
@@ -46,6 +52,13 @@ void MainWindow::on_btn_choseFileName_clicked()
     QString filename = QFileDialog::getOpenFileName(this, "Choose file", "", "*.csv");
     ui->lbl_filename->setText(filename);
     ui->btn_Load_data->setEnabled(true);
+    FuncArgument fa={};
+    FuncReturningValue frv={};
+    ui->box_column->clear();
+    ui->box_region->clear();
+    ui->tb_widget->setColumnCount(0);
+    ui->tb_widget->setRowCount(0);
+    ui->tb_widget->clearContents();
 }
 
 void MainWindow::on_btn_Load_data_clicked()
@@ -56,16 +69,21 @@ void MainWindow::on_btn_Load_data_clicked()
             .filename = QstringToCharArray(filename)
         };
         FuncReturningValue* frv = entryPoint(getData, &fa);
-        showData(frv);
-        FuncArgument fa2 = {
-            .filename = fa.filename,
-            .data = frv->data,
-            .headers = frv->headers,
-            .len = frv->len,
-            .fields_num = frv->fields_num
-        };
-        entryPoint(cleanData, &fa2);
-        free(frv);
+        if (frv==NULL)
+            QMessageBox::information(this,"Error","There are problems with opening the file");
+        else
+        {
+            showData(frv);
+            FuncArgument fa2 = {
+                .filename = fa.filename,
+                .data = frv->data,
+                .headers = frv->headers,
+                .len = frv->len,
+                .fields_num = frv->fields_num
+            };
+            entryPoint(cleanData, &fa2);
+            free(frv);
+        }
         ui->btn_Load_data->setEnabled(false);
         ui->btn_calc_metrics->setEnabled(true);
     }
@@ -73,6 +91,7 @@ void MainWindow::on_btn_Load_data_clicked()
 
 void MainWindow::showData(FuncReturningValue* frv)
 {
+    ui->tb_widget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->tb_widget-> setColumnCount(frv->fields_num);
     QStringList QColumns = ConvertRowToQTFormat(frv->headers, frv->fields_num);
     ui->tb_widget->setHorizontalHeaderLabels(QColumns);
@@ -86,14 +105,15 @@ void MainWindow::showData(FuncReturningValue* frv)
                 for (int j = 0; j < currentRow.count(); j++)
                 {
                     QTableWidgetItem *item = new QTableWidgetItem();
-                    item->setData(Qt::EditRole, currentRow.at(j).toDouble());
                     item->setText(currentRow.at(j));
                     ui->tb_widget->setItem(i, j, item);
                 }
         }
-        QStringList regions=calculateRegions(),columns=calculateColumns(frv);
-        ui->box_region->addItems(regions);
-        ui->box_column->addItems(columns);
+        if (ui->box_column->count()==0){
+            QStringList regions=calculateRegions();
+            ui->box_region->addItems(regions);
+            ui->box_column->addItems(QColumns);
+        }
     }
 }
 
@@ -117,37 +137,33 @@ char*** MainWindow::getDataFromTable()
 
 void MainWindow::on_btn_calc_metrics_clicked()
 {
+    on_btn_Load_data_clicked();
     FuncArgument fa = {
             .filename=QstringToCharArray(ui->lbl_filename->text()),
             .data = getDataFromTable(),
             .region=QstringToCharArray(ui->box_region->currentText()),
-            .column=(size_t)(ui->box_column->currentText()).toInt(),
+            .column=(size_t)ui->box_column->currentIndex(),
             .len = (size_t)ui->tb_widget->rowCount(),
             .fields_num = (size_t)ui->tb_widget->columnCount(),
-            .region_number=(size_t)calculateRegions().indexOf(ui->box_region->currentText())
-        };
-        FuncReturningValue* frv = entryPoint(calculateData, &fa);
-        ui->lbl_min->setText("Min: " + QString::number(frv->solution_min));
-        ui->lbl_max->setText("Max: " + QString::number(frv->solution_max));
-        ui->lbl_median->setText("Median: " + QString::number(frv->solution_median));
+            .region_number=(size_t)ui->box_region->currentIndex()
+    };
+    FuncReturningValue* frv = entryPoint(calculateData, &fa);
+    if (frv==NULL)
+        QMessageBox::information(this,"Error","You should choose another column, in this column the values are unsuitable for calculations");
+    else{
+        ui->lbl_min->setText("Min value: " + QString::number(frv->solution_min));
+        ui->lbl_max->setText("Max value: " + QString::number(frv->solution_max));
+        ui->lbl_median->setText("Median value: " + QString::number(frv->solution_median));
         showData(frv);
         //draw();
-        entryPoint(cleanData, &fa);
-        free(frv);
-        ui->btn_calc_metrics->setEnabled(false);
-}
-
-QStringList MainWindow::calculateColumns(FuncReturningValue* frv)
-{
-    QStringList columns;
-    for (size_t i=2;i<frv->fields_num;i++)
-        columns.append(QString::number(i+1));
-    return columns;
+    }
+    entryPoint(cleanData, &fa);
+    free(frv);
 }
 
 QStringList MainWindow::calculateRegions()
 {
-    QStringList regions;
+    QStringList regions={};
     for (size_t i=0;i<(size_t)ui->tb_widget->rowCount();i++)
     {
         QTableWidgetItem *item = ui->tb_widget->item(i,1);
@@ -160,14 +176,11 @@ QStringList MainWindow::calculateRegions()
 
 /*void MainWindow::draw()
 {
-    QPixmap *pix = new QPixmap(500, 500);
-    QPainter paint(pix);
-    paint.fillRect(0, 0, 500, 500, QBrush(QColor(Qt::GlobalColor::white)));
-    paint.setPen(*(new QColor(255, 34, 255, 255)));
-    paint.drawRect(15, 15, 100, 100);
-    paint.setPen(QColor(Qt::GlobalColor::red));
-    paint.drawLine(10, 10, 300, 300);
-    paint.drawPoint(450, 450);
-    paint.drawText(250, 200, "Red text");
-    ui->lbl_for_draw->setPixmap(*pix);
+    QGraphicsScene *scene = new QGraphicsScene(ui->graphicsView);
+    //Это как раз создана сцена. Сцена - это класс для работы с 2D графикой.
+    //Теперь, раз это график, то построим координатные оси X и Y.
+    QPen pen(Qt::green);//Просто выбираем цвет для карандашика
+    scene->addLine(0,90,180,90,pen);//x
+    scene->addLine(90,0,90,180,pen);//y
+    ui->graphicsView->setScene(scene);
 }*/

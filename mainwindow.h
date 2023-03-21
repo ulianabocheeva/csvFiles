@@ -6,6 +6,7 @@
 #include "QMessageBox"
 #include <QFileDialog>
 //#include <QPainter>
+//#include <QGraphicsScene>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -33,7 +34,7 @@ private:
     void showData(FuncReturningValue*);
     void draw();
     char*** getDataFromTable();
-    QStringList calculateColumns(FuncReturningValue*);
+    QStringList calculateColumns();
     QStringList calculateRegions();
 };
 
