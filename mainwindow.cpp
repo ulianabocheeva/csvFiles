@@ -59,6 +59,9 @@ void MainWindow::on_btn_choseFileName_clicked()
     ui->tb_widget->setColumnCount(0);
     ui->tb_widget->setRowCount(0);
     ui->tb_widget->clearContents();
+    ui->lbl_min->setText("Min value: ");
+    ui->lbl_max->setText("Max value: ");
+    ui->lbl_median->setText("Median value: ");
 }
 
 void MainWindow::on_btn_Load_data_clicked()
@@ -148,8 +151,13 @@ void MainWindow::on_btn_calc_metrics_clicked()
             .region_number=(size_t)ui->box_region->currentIndex()
     };
     FuncReturningValue* frv = entryPoint(calculateData, &fa);
-    if (frv==NULL)
-        QMessageBox::information(this,"Error","You should choose another column, in this column the values are unsuitable for calculations");
+    if (frv==NULL){
+        QMessageBox::information(this,"Error","You should choose another column, "
+                                              "in this column the values are unsuitable for calculations");
+        ui->lbl_min->setText("Min value: ");
+        ui->lbl_max->setText("Max value: ");
+        ui->lbl_median->setText("Median value: ");
+    }
     else{
         ui->lbl_min->setText("Min value: " + QString::number(frv->solution_min));
         ui->lbl_max->setText("Max value: " + QString::number(frv->solution_max));
@@ -170,17 +178,16 @@ QStringList MainWindow::calculateRegions()
         regions.append(item->text());
     }
     regions.removeDuplicates();
-    regions.removeAll("error");
     return regions;
 }
 
-/*void MainWindow::draw()
+void MainWindow::draw()
 {
-    QGraphicsScene *scene = new QGraphicsScene(ui->graphicsView);
+    /*QGraphicsScene *scene = new QGraphicsScene(ui->view_for_draw);
     //Это как раз создана сцена. Сцена - это класс для работы с 2D графикой.
     //Теперь, раз это график, то построим координатные оси X и Y.
-    QPen pen(Qt::green);//Просто выбираем цвет для карандашика
+    QPen pen(Qt::black);//Просто выбираем цвет для карандашика
     scene->addLine(0,90,180,90,pen);//x
     scene->addLine(90,0,90,180,pen);//y
-    ui->graphicsView->setScene(scene);
-}*/
+    ui->view_for_draw->setScene(scene);*/
+}

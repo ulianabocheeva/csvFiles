@@ -11,6 +11,8 @@ size_t calculating_region_lines_number(FuncArgument* fa);
 char***memory_alloc(FuncArgument*fa);
 char**get_headers(FuncArgument* fa);
 double calc_median(std::vector<double> vectorForMedian,int count_lines);
+double calc_min(FuncArgument *fa);
+double calc_max(FuncArgument *fa);
 
 FuncReturningValue* entryPoint(FuncType ft, FuncArgument* fa)
 {
@@ -71,7 +73,7 @@ FuncReturningValue* getDataFromFile(const char* filename)
 FuncReturningValue* solve(FuncArgument* fa)
 {
     int count_lines=0;
-    double min=atof(fa->data[fa->region_number][fa->column]),max=atof(fa->data[fa->region_number][fa->column]),current;
+    double min=calc_min(fa),max=calc_max(fa),current;
     std::vector<double> vectorForMedian;
     if (isalpha(*(fa->data[fa->region_number][fa->column])))
         return NULL;
@@ -82,13 +84,15 @@ FuncReturningValue* solve(FuncArgument* fa)
         if (data_for_chosen_region!=NULL){
             for (size_t i=0;i<fa->len;i++)
             {
-                if (strstr(fa->data[i][1],fa->region)!=NULL)
+                if (strcmp(fa->data[i][1],fa->region)==0)
                 {
                     *(data_for_chosen_region+count_lines)=fa->data[i];
                     count_lines++;
-                    current=atof(fa->data[i][fa->column]);
-                    current<min? min=current:current>max? max=current:max;
-                    vectorForMedian.push_back(current);
+                    if (strcmp(fa->data[i][fa->column],"")!=0){
+                        current=atof(fa->data[i][fa->column]);
+                        current<min? min=current:current>max? max=current:max;
+                        vectorForMedian.push_back(current);
+                    }
                 }
             }
             frv->headers=get_headers(fa);
@@ -101,6 +105,36 @@ FuncReturningValue* solve(FuncArgument* fa)
         }
     }
     return frv;
+}
+
+double calc_min(FuncArgument *fa)
+{
+    double min=0;
+    for (size_t i=0;i<fa->len;i++)
+    {
+        if (strcmp(fa->data[i][1],fa->region)==0){
+            if (strcmp(fa->data[i][fa->column],"")!=0){
+                min=atof(fa->data[i][fa->column]);
+                break;
+            }
+        }
+    }
+    return min;
+}
+
+double calc_max(FuncArgument *fa)
+{
+    double max=0;
+    for (size_t i=0;i<fa->len;i++)
+    {
+        if (strcmp(fa->data[i][1],fa->region)==0){
+            if (strcmp(fa->data[i][fa->column],"")!=0){
+                max=atof(fa->data[i][fa->column]);
+                break;
+            }
+        }
+    }
+    return max;
 }
 
 void clean(FuncArgument* args)
