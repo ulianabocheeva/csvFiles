@@ -5,6 +5,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow){
     ui->setupUi(this);
+    this->setWindowTitle("Csv files");
 }
 
 MainWindow::~MainWindow()
@@ -33,15 +34,14 @@ QStringList ConvertRowToQTFormat(char **row, size_t size)
         qsl.append(QString::fromUtf8(*(row+i)));
         if (i!=size-1 && strstr(*(row+i),str)!=NULL)
         {
-            qsl.clear();
-            for (size_t i = 0; i < size; qsl.append("error"),i++);
+            for (size_t j=i; j < size; qsl.append(""),j++);
             break;
         }
     }
     if (strstr(QstringToCharArray(qsl.at(size-1)),str)!=NULL){
         QString tmp=qsl.at(size-1);
         qsl.removeLast();
-        qsl.append(tmp.split(str));
+        qsl.append(tmp.split(str));//удаляю символ /n, чтобы при отсутствии последнего элемента в таблице отображалось ""
         qsl.removeLast();
     }
     return qsl;
@@ -152,8 +152,7 @@ void MainWindow::on_btn_calc_metrics_clicked()
     };
     FuncReturningValue* frv = entryPoint(calculateData, &fa);
     if (frv==NULL){
-        QMessageBox::information(this,"Error","You should choose another column, "
-                                              "in this column the values are unsuitable for calculations");
+        QMessageBox::information(this,"Error","It's ipossible to calculate metrics for this column");
         ui->lbl_min->setText("Min value: ");
         ui->lbl_max->setText("Max value: ");
         ui->lbl_median->setText("Median value: ");

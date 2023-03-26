@@ -3,12 +3,14 @@
 FuncReturningValue* getDataFromFile(const char *filename);
 FuncReturningValue* solve(FuncArgument* fa);
 void clean(FuncArgument* args);
-char** read_csv(FILE* fp, size_t *lines);
+char** read_csv(const char* filename, size_t *lines);
 void clean2DArray(char**, size_t );
 void clean3DArray(char***, size_t, size_t);
 char** strSplit(char*, size_t *, const char);
+char** strSplit(string line);
 size_t calculating_region_lines_number(FuncArgument* fa);
-char***memory_alloc(FuncArgument*fa);
+char***memory_alloc_for_3DArray(FuncArgument*fa);
+char**memory_alloc_for_2DArray(int n);
 char**get_headers(FuncArgument* fa);
 double calc_median(std::vector<double> vectorForMedian,int count_lines);
 double calc_min(FuncArgument *fa);
@@ -37,25 +39,21 @@ FuncReturningValue* entryPoint(FuncType ft, FuncArgument* fa)
 
 FuncReturningValue* getDataFromFile(const char* filename)
 {
-    size_t lines,fields;
+    size_t lines,fields=7;
     FuncReturningValue *frv = (FuncReturningValue *)malloc(sizeof(FuncReturningValue));
     if (frv!=NULL)
     {
-        FILE* fp = fopen(filename, "r");
-        fp==NULL? frv=NULL:frv;
-        if (fp!=NULL)
-        {
-            char **rawData = read_csv(fp, &lines);
+        char **rawData = read_csv(filename, &lines);
             if (rawData!=NULL)
             {
                 char ***data = (char***)malloc((lines - 1) * sizeof(char**));
                 if (data!=NULL)
                 {
-                    char **headers = strSplit(*rawData, &fields, ',');
+                    char **headers = strSplit(*rawData);
                     if (headers!=NULL)
                     {
                         for (size_t i = 0; i < lines - 1; i++)
-                            *(data+i) = strSplit(*(rawData+i+1), &fields, ',');
+                            *(data+i) = strSplit(*(rawData+i+1));
                         lines--;
                         clean2DArray(rawData, lines);
                         frv->len = lines;
@@ -66,7 +64,6 @@ FuncReturningValue* getDataFromFile(const char* filename)
                 }
             }
         }
-    }
     return frv;
 }
 
@@ -75,12 +72,12 @@ FuncReturningValue* solve(FuncArgument* fa)
     int count_lines=0;
     double min=calc_min(fa),max=calc_max(fa),current;
     std::vector<double> vectorForMedian;
+    FuncReturningValue *frv = (FuncReturningValue *)malloc(sizeof(FuncReturningValue));
     if (isalpha(*(fa->data[fa->region_number][fa->column])))
         return NULL;
-    FuncReturningValue *frv = (FuncReturningValue *)malloc(sizeof(FuncReturningValue));
     if (frv!=NULL)
     {
-        char ***data_for_chosen_region =memory_alloc(fa);
+        char ***data_for_chosen_region =memory_alloc_for_3DArray(fa);
         if (data_for_chosen_region!=NULL){
             for (size_t i=0;i<fa->len;i++)
             {
@@ -88,7 +85,7 @@ FuncReturningValue* solve(FuncArgument* fa)
                 {
                     *(data_for_chosen_region+count_lines)=fa->data[i];
                     count_lines++;
-                    if (strcmp(fa->data[i][fa->column],"")!=0){
+                    if ((strcmp(fa->data[i][fa->column],"")!=0)&&(!isalpha(*(fa->data[i][fa->column])))){
                         current=atof(fa->data[i][fa->column]);
                         current<min? min=current:current>max? max=current:max;
                         vectorForMedian.push_back(current);
@@ -151,15 +148,16 @@ void clean(FuncArgument* args)
         free(args->region);
 }
 
-char** read_csv(FILE* fp, size_t *lines){
-    char line[SIZE];
-    size_t llen;
-    size_t counter = 0;
-    size_t max_size = 1;
+char** read_csv(const char* filename, size_t *lines){
+    string line;
+    size_t llen,counter = 0,max_size = 1;
     char **data = (char **)calloc(max_size, sizeof(char *));
     if (data == NULL)
         return NULL;
-    while (fgets(line,STRLEN,fp))
+    ifstream fp(filename);
+    if(!fp.is_open())
+        return NULL;
+    while (getline(fp,line))
     {
         if (counter >= max_size-1)
         {
@@ -169,9 +167,9 @@ char** read_csv(FILE* fp, size_t *lines){
             else
                 return NULL;
         }
-        llen = strlen(line);
+        llen = line.length();
         *(data+counter) = (char *)calloc(sizeof(char), llen+1);
-        strcpy(*(data+counter), line);
+        strcpy(*(data+counter), line.c_str());
         counter++;
     }
 
@@ -249,7 +247,7 @@ size_t calculating_region_lines_number(FuncArgument* fa)
     return lines;
 }
 
-char***memory_alloc(FuncArgument*fa)
+char***memory_alloc_for_3DArray(FuncArgument*fa)
 {
     size_t rows=calculating_region_lines_number(fa);
     char ***data = (char ***)malloc(rows*sizeof(char**));
@@ -269,17 +267,45 @@ char***memory_alloc(FuncArgument*fa)
     return data;
 }
 
+char**memory_alloc_for_2DArray(int n)
+{
+    char **data = (char **)malloc(n*sizeof(char*));
+    if (data!=NULL)
+    {
+        for (size_t i = 0; i < n; i++)
+        {
+            *(data+i) = (char *)malloc(sizeof(char) * 30);
+        }
+    }
+    return data;
+}
 char**get_headers(FuncArgument* fa)
 {
-    size_t count;
-    char line[STRLEN];
-    char **headers=NULL;
-    FILE *fp=fopen(fa->filename, "r");
-    if(fp){
-        fgets(line,STRLEN,fp);
-        headers=strSplit(line, &count, ',');
+    size_t i=0;
+    char **headers=memory_alloc_for_2DArray(7);
+    string line,str;
+    ifstream fp(fa->filename);
+    if(fp.is_open()){
+        getline(fp,line);
+        // ss is an object of stringstream that references the S string.
+        stringstream ss(line);
+        while (getline(ss, str, ',')){
+            strcpy(headers[i],str.c_str());
+            i++;
+        }
     }
     return headers;
+}
+char **strSplit(string line){
+    size_t i=0;
+    string str;
+    stringstream ss(line);
+    char**array=memory_alloc_for_2DArray(line.length());
+    while (getline(ss, str, ',')){
+        strcpy(array[i],str.c_str());
+        i++;
+    }
+    return array;
 }
 
 double calc_median(std::vector<double> vectorForMedian,int count_lines)

@@ -1,10 +1,13 @@
 #include <iostream>
 #include <string.h>
+#include <fstream>
+#include <sstream>
 #include <stdlib.h>
 #include <vector>
 #include <algorithm>
 #define SIZE 1024
 #define STRLEN 120
+using namespace std;
 
 enum FuncType
 {
