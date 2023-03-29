@@ -28,21 +28,9 @@ char* QstringToCharArray(QString qstr)
 QStringList ConvertRowToQTFormat(char **row, size_t size)
 {
     QStringList qsl = {};
-    char str[]="\n";
     for (size_t i = 0; i < size; i++)
     {
         qsl.append(QString::fromUtf8(*(row+i)));
-        if (i!=size-1 && strstr(*(row+i),str)!=NULL)
-        {
-            for (size_t j=i; j < size; qsl.append(""),j++);
-            break;
-        }
-    }
-    if (strstr(QstringToCharArray(qsl.at(size-1)),str)!=NULL){
-        QString tmp=qsl.at(size-1);
-        qsl.removeLast();
-        qsl.append(tmp.split(str));//удаляю символ /n, чтобы при отсутствии последнего элемента в таблице отображалось ""
-        qsl.removeLast();
     }
     return qsl;
 }
@@ -84,6 +72,17 @@ void MainWindow::on_btn_Load_data_clicked()
                 .len = frv->len,
                 .fields_num = frv->fields_num
             };
+            /*table= memory_alloc_tb((size_t)frv->len,(size_t)frv->fields_num);
+            for ( int i = 0; i < frv->len; i ++ )
+                {
+                    for ( int j = 0; j < frv->fields_num; j ++ )
+                    {                       
+                        strcpy(table[i][j],frv->data[i][j]);
+                    }
+                }
+            //table = frv->data;*/
+            //len = frv->len;
+            //fields_num = frv->fields_num;
             entryPoint(cleanData, &fa2);
             free(frv);
         }
@@ -96,8 +95,8 @@ void MainWindow::showData(FuncReturningValue* frv)
 {
     ui->tb_widget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->tb_widget-> setColumnCount(frv->fields_num);
-    QStringList QColumns = ConvertRowToQTFormat(frv->headers, frv->fields_num);
-    ui->tb_widget->setHorizontalHeaderLabels(QColumns);
+    headers = ConvertRowToQTFormat(frv->headers, frv->fields_num);
+    ui->tb_widget->setHorizontalHeaderLabels(headers);
     if (frv->data != NULL)
     {
         ui->tb_widget->setRowCount(0);
@@ -115,7 +114,29 @@ void MainWindow::showData(FuncReturningValue* frv)
         if (ui->box_column->count()==0){
             QStringList regions=calculateRegions();
             ui->box_region->addItems(regions);
-            ui->box_column->addItems(QColumns);
+            ui->box_column->addItems(headers);
+        }
+    }
+}
+
+void MainWindow::showDataForCalcMetrics()
+{
+    ui->tb_widget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->tb_widget-> setColumnCount(fields_num);
+    ui->tb_widget->setHorizontalHeaderLabels(headers);
+    if (table != NULL)
+    {
+        ui->tb_widget->setRowCount(0);
+        for (size_t i = 0; i < len; i++)
+        {
+            QStringList currentRow = ConvertRowToQTFormat(table[i], fields_num);
+                ui->tb_widget->setRowCount(i + 1);
+                for (int j = 0; j < currentRow.count(); j++)
+                {
+                    QTableWidgetItem *item = new QTableWidgetItem();
+                    item->setText(currentRow.at(j));
+                    ui->tb_widget->setItem(i, j, item);
+                }
         }
     }
 }
@@ -140,32 +161,32 @@ char*** MainWindow::getDataFromTable()
 
 void MainWindow::on_btn_calc_metrics_clicked()
 {
-    on_btn_Load_data_clicked();
-    FuncArgument fa = {
-            .filename=QstringToCharArray(ui->lbl_filename->text()),
-            .data = getDataFromTable(),
-            .region=QstringToCharArray(ui->box_region->currentText()),
-            .column=(size_t)ui->box_column->currentIndex(),
-            .len = (size_t)ui->tb_widget->rowCount(),
-            .fields_num = (size_t)ui->tb_widget->columnCount(),
-            .region_number=(size_t)ui->box_region->currentIndex()
-    };
-    FuncReturningValue* frv = entryPoint(calculateData, &fa);
-    if (frv==NULL){
-        QMessageBox::information(this,"Error","It's ipossible to calculate metrics for this column");
-        ui->lbl_min->setText("Min value: ");
-        ui->lbl_max->setText("Max value: ");
-        ui->lbl_median->setText("Median value: ");
-    }
-    else{
-        ui->lbl_min->setText("Min value: " + QString::number(frv->solution_min));
-        ui->lbl_max->setText("Max value: " + QString::number(frv->solution_max));
-        ui->lbl_median->setText("Median value: " + QString::number(frv->solution_median));
-        showData(frv);
-        //draw();
-    }
-    entryPoint(cleanData, &fa);
-    free(frv);
+    //showDataForCalcMetrics();
+        FuncArgument fa = {
+                .filename=QstringToCharArray(ui->lbl_filename->text()),
+                .data = getDataFromTable(),
+                .region=QstringToCharArray(ui->box_region->currentText()),
+                .column=(size_t)ui->box_column->currentIndex(),
+                .len = (size_t)ui->tb_widget->rowCount(),
+                .fields_num = (size_t)ui->tb_widget->columnCount(),
+                .region_number=(size_t)ui->box_region->currentIndex()
+        };
+        FuncReturningValue* frv = entryPoint(calculateData, &fa);
+        if (frv->error==4){
+            QMessageBox::information(this,"Error","It's ipossible to calculate metrics for this column");
+            ui->lbl_min->setText("Min value: ");
+            ui->lbl_max->setText("Max value: ");
+            ui->lbl_median->setText("Median value: ");
+        }
+        else{
+            ui->lbl_min->setText("Min value: " + QString::number(frv->solution_min));
+            ui->lbl_max->setText("Max value: " + QString::number(frv->solution_max));
+            ui->lbl_median->setText("Median value: " + QString::number(frv->solution_median));
+            showData(frv);
+            //draw();
+        }
+        entryPoint(cleanData, &fa);
+        free(frv);
 }
 
 QStringList MainWindow::calculateRegions()
@@ -189,4 +210,22 @@ void MainWindow::draw()
     scene->addLine(0,90,180,90,pen);//x
     scene->addLine(90,0,90,180,pen);//y
     ui->view_for_draw->setScene(scene);*/
+}
+char***MainWindow::memory_alloc_tb(size_t rows,size_t cols)
+{
+    char ***data = (char ***)malloc(rows*sizeof(char**));
+    if (data!=NULL)
+    {
+        for (size_t i = 0; i < rows; i++)
+        {
+            *(data+i) = (char **)malloc(sizeof(char*) * cols);
+            if (*(data+i)!=NULL){
+                for (size_t j = 0; j < cols; j++)
+                {
+                    *(*(data+i)+j)=(char *)malloc(sizeof(char) *STRLEN);
+                }
+            }
+        }
+    }
+    return data;
 }

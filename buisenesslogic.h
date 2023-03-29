@@ -25,6 +25,8 @@ typedef struct
     double solution_median;
     size_t len;                                       // число строк в таблице
     size_t fields_num;                                // число столбцов в таблице
+    size_t error;                                     //0-нет ошибки,1-ошибка выделения памяти,2-невозможно откыть файл,
+                                                      //3-неверные разделители,4-calc
 } FuncReturningValue;
 
 typedef struct
@@ -34,7 +36,7 @@ typedef struct
     char **headers;                                    // заголовки таблицы (функция getData())
     char **solution;                                   // результат вычислений (для освобождения памяти)
     char *region;                                      //регион по которому вычисляются метрики
-    size_t column;                                        //колонка по которой вычисляются метрики
+    size_t column;                                     //колонка по которой вычисляются метрики
     size_t len;                                        // число строк в таблице
     size_t fields_num;                                 // число столбцов в таблице
     size_t region_number;                              //индекс региона в списке

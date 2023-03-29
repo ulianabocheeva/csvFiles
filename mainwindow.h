@@ -32,11 +32,17 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    char ***table;
+    QStringList headers;
+    size_t len;
+    size_t fields_num;
     void showData(FuncReturningValue*);
+    void showDataForCalcMetrics();
     void draw();
     char*** getDataFromTable();
     QStringList calculateColumns();
     QStringList calculateRegions();
+    char***memory_alloc_tb(size_t rows,size_t cols);
 };
 
 #endif // MAINWINDOW_H
