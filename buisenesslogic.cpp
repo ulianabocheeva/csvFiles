@@ -6,7 +6,7 @@ void clean(FuncArgument* args);
 char** read_csv(const char* filename, size_t *lines);
 void clean2DArray(char**, size_t );
 void clean3DArray(char***, size_t, size_t);
-char** strSplit(string line);
+char** strSplit(string line,size_t*);
 size_t calculating_region_lines_number(FuncArgument* fa);
 char***memory_alloc_for_3DArray(FuncArgument*fa);
 char**memory_alloc_for_2DArray(int n);
@@ -32,13 +32,12 @@ FuncReturningValue* entryPoint(FuncType ft, FuncArgument* fa)
             result = NULL;
             break;
     }
-
     return result;
 }
 
 FuncReturningValue* getDataFromFile(const char* filename)
 {
-    size_t lines,fields=7;
+    size_t lines,fields=0;
     FuncReturningValue *frv = (FuncReturningValue *)malloc(sizeof(FuncReturningValue));
     if (frv!=NULL) {
         char **rawData = read_csv(filename, &lines);
@@ -48,16 +47,18 @@ FuncReturningValue* getDataFromFile(const char* filename)
                     if (*rawData!=NULL) {
                         string str(*rawData);
                         count(str.begin(), str.end(), ',')==0? frv->error=3:0;
-                        char **headers = strSplit(*rawData);
+                        char **headers = strSplit(*rawData,&fields);
                         if (headers!=NULL) {
-                            for (size_t i = 0; i < lines - 1; i++)
-                                *(data+i) = strSplit(*(rawData+i+1));
+                            for (size_t i = 0; i < lines - 1; i++){
+                                *(data+i) = strSplit(*(rawData+i+1),&fields);
+                            }
                             lines--;
                             clean2DArray(rawData, lines);
                             frv->len = lines;
                             frv->fields_num = fields;
                             frv->headers = headers;
                             frv->data = data;
+
                         }
                     }
                 }
@@ -65,33 +66,35 @@ FuncReturningValue* getDataFromFile(const char* filename)
     }
     return frv;
 }
+void copyMas(char** newMas, char** mas, int count){
+    for (int i = 0; i < count ; i++){
+        strcpy(newMas[i], mas[i]);
+    }
+}
 
 FuncReturningValue* solve(FuncArgument* fa)
 {
-    int count_lines=0;
+    size_t count_lines=0;
     double min=calc_min(fa),max=calc_max(fa),current;
     std::vector<double> vectorForMedian;
     FuncReturningValue *frv = (FuncReturningValue *)malloc(sizeof(FuncReturningValue));
-    if (isalpha(*(fa->data[fa->region_number][fa->column])))
-        return NULL;
     if (frv!=NULL)
     {
-        char ***data_for_chosen_region =memory_alloc_for_3DArray(fa);
-        if (data_for_chosen_region!=NULL){
-            for (size_t i=0;i<fa->len;i++)
+        char ***data_for_chosen_region=memory_alloc_for_3DArray(fa);
+        for (size_t i=0;i<fa->len;i++)
+        {
+            if (strcmp(fa->data[i][1],fa->region)==0)
             {
-                if (strcmp(fa->data[i][1],fa->region)==0)
-                {
-                    *(data_for_chosen_region+count_lines)=fa->data[i];
-                    count_lines++;
-                    if ((strcmp(fa->data[i][fa->column],"")!=0)&&(!isalpha(*(fa->data[i][fa->column])))){
-                        current=atof(fa->data[i][fa->column]);
-                        current<min? min=current:current>max? max=current:max;
-                        vectorForMedian.push_back(current);
-                    }
+                *(data_for_chosen_region+count_lines)=fa->data[i];
+                count_lines++;
+                if ((strcmp(fa->data[i][fa->column],"")!=0)&&(!isalpha(*(fa->data[i][fa->column])))){
+                    current=atof(fa->data[i][fa->column]);
+                    current<min? min=current:current>max? max=current:max;
+                    vectorForMedian.push_back(current);
                 }
             }
-            if (count_lines!=0){
+        }
+        if (count_lines!=0){
             frv->headers=get_headers(fa);
             frv->fields_num=fa->fields_num;
             frv->len=count_lines;
@@ -99,9 +102,9 @@ FuncReturningValue* solve(FuncArgument* fa)
             frv->solution_min=min;
             frv->solution_max=max;
             frv->solution_median=calc_median(vectorForMedian,vectorForMedian.size());}
-            else
-                frv->error=4;
-        }
+        else
+            frv->error=4;
+        //clean3DArray(data_for_chosen_region,fa->fields_num,count_lines);
     }
     return frv;
 }
@@ -164,11 +167,11 @@ void clean(FuncArgument* args)
 char** read_csv(const char* filename, size_t *lines){
     string line;
     size_t llen,counter = 0,max_size = 1;
-    char **data = (char **)calloc(max_size, sizeof(char *));
-    if (data == NULL)
-        return NULL;
     ifstream fp(filename);
     if(!fp.is_open())
+        return NULL;
+    char **data = (char **)calloc(max_size, sizeof(char *));
+    if (data == NULL)
         return NULL;
     while (getline(fp,line))
     {
@@ -185,9 +188,8 @@ char** read_csv(const char* filename, size_t *lines){
         strcpy(*(data+counter), line.c_str());
         counter++;
     }
-
+    fp.close();
     *lines = counter;
-
     return data;
 }
 
@@ -277,16 +279,17 @@ char**get_headers(FuncArgument* fa)
     return headers;
 }
 
-char **strSplit(string line){
-    size_t counter=0;
+char **strSplit(string line,size_t*counter){
+    size_t num=0;
     string str,tmp=line;
     stringstream ss(line);
     //+1 потому что слов на 1 больше, чем разделителей
     char**array=(char **)calloc(count(line.begin(), line.end(), ',')+1, sizeof(char *));
     while (getline(ss, str, ',')){
-        *(array+counter) = (char *)malloc(sizeof(char) * str.length());
-        strcpy(array[counter],str.c_str());
-        counter++;
+        *(array+num) = (char *)malloc(sizeof(char) * str.length());
+        strcpy(array[num],str.c_str());
+        num++;
     }
+    *counter=num;
     return array;
 }

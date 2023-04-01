@@ -6,7 +6,7 @@
 #include <vector>
 #include <algorithm>
 #define SIZE 1024
-#define STRLEN 120
+#define STRLEN 50
 using namespace std;
 
 enum FuncType

@@ -40,8 +40,7 @@ void MainWindow::on_btn_choseFileName_clicked()
     QString filename = QFileDialog::getOpenFileName(this, "Choose file", "", "*.csv");
     ui->lbl_filename->setText(filename);
     ui->btn_Load_data->setEnabled(true);
-    FuncArgument fa={};
-    FuncReturningValue frv={};
+    ui->btn_calc_metrics->setEnabled(false);
     ui->box_column->clear();
     ui->box_region->clear();
     ui->tb_widget->setColumnCount(0);
@@ -72,17 +71,6 @@ void MainWindow::on_btn_Load_data_clicked()
                 .len = frv->len,
                 .fields_num = frv->fields_num
             };
-            /*table= memory_alloc_tb((size_t)frv->len,(size_t)frv->fields_num);
-            for ( int i = 0; i < frv->len; i ++ )
-                {
-                    for ( int j = 0; j < frv->fields_num; j ++ )
-                    {                       
-                        strcpy(table[i][j],frv->data[i][j]);
-                    }
-                }
-            //table = frv->data;*/
-            //len = frv->len;
-            //fields_num = frv->fields_num;
             entryPoint(cleanData, &fa2);
             free(frv);
         }
@@ -95,8 +83,8 @@ void MainWindow::showData(FuncReturningValue* frv)
 {
     ui->tb_widget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->tb_widget-> setColumnCount(frv->fields_num);
-    headers = ConvertRowToQTFormat(frv->headers, frv->fields_num);
-    ui->tb_widget->setHorizontalHeaderLabels(headers);
+    QStringList header = ConvertRowToQTFormat(frv->headers, frv->fields_num);
+    ui->tb_widget->setHorizontalHeaderLabels(header);
     if (frv->data != NULL)
     {
         ui->tb_widget->setRowCount(0);
@@ -114,22 +102,24 @@ void MainWindow::showData(FuncReturningValue* frv)
         if (ui->box_column->count()==0){
             QStringList regions=calculateRegions();
             ui->box_region->addItems(regions);
-            ui->box_column->addItems(headers);
+            ui->box_column->addItems(header);
         }
     }
+    if (tbl.key!=1)
+        tbl={.data = getDataFromTable(),.headers=header,.len=frv->len,.fields_num=frv->fields_num,.key=1};
 }
 
 void MainWindow::showDataForCalcMetrics()
 {
     ui->tb_widget->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    ui->tb_widget-> setColumnCount(fields_num);
-    ui->tb_widget->setHorizontalHeaderLabels(headers);
-    if (table != NULL)
+    ui->tb_widget-> setColumnCount(tbl.fields_num);
+    ui->tb_widget->setHorizontalHeaderLabels(tbl.headers);
+    if (tbl.data != NULL)
     {
         ui->tb_widget->setRowCount(0);
-        for (size_t i = 0; i < len; i++)
+        for (size_t i = 0; i < tbl.len; i++)
         {
-            QStringList currentRow = ConvertRowToQTFormat(table[i], fields_num);
+            QStringList currentRow = ConvertRowToQTFormat(tbl.data[i], tbl.fields_num);
                 ui->tb_widget->setRowCount(i + 1);
                 for (int j = 0; j < currentRow.count(); j++)
                 {
@@ -161,32 +151,24 @@ char*** MainWindow::getDataFromTable()
 
 void MainWindow::on_btn_calc_metrics_clicked()
 {
-    //showDataForCalcMetrics();
-        FuncArgument fa = {
-                .filename=QstringToCharArray(ui->lbl_filename->text()),
-                .data = getDataFromTable(),
-                .region=QstringToCharArray(ui->box_region->currentText()),
-                .column=(size_t)ui->box_column->currentIndex(),
-                .len = (size_t)ui->tb_widget->rowCount(),
-                .fields_num = (size_t)ui->tb_widget->columnCount(),
-                .region_number=(size_t)ui->box_region->currentIndex()
-        };
-        FuncReturningValue* frv = entryPoint(calculateData, &fa);
-        if (frv->error==4){
-            QMessageBox::information(this,"Error","It's ipossible to calculate metrics for this column");
-            ui->lbl_min->setText("Min value: ");
-            ui->lbl_max->setText("Max value: ");
-            ui->lbl_median->setText("Median value: ");
-        }
-        else{
-            ui->lbl_min->setText("Min value: " + QString::number(frv->solution_min));
-            ui->lbl_max->setText("Max value: " + QString::number(frv->solution_max));
-            ui->lbl_median->setText("Median value: " + QString::number(frv->solution_median));
-            showData(frv);
-            //draw();
-        }
-        entryPoint(cleanData, &fa);
-        free(frv);
+    showDataForCalcMetrics();
+    FuncArgument fa = {
+            .filename=QstringToCharArray(ui->lbl_filename->text()),
+            .data = getDataFromTable(),
+            .region=QstringToCharArray(ui->box_region->currentText()),
+            .column=(size_t)ui->box_column->currentIndex(),
+            .len = (size_t)ui->tb_widget->rowCount(),
+            .fields_num = (size_t)ui->tb_widget->columnCount(),
+            .region_number=(size_t)ui->box_region->currentIndex()
+    };
+    FuncReturningValue* frv = entryPoint(calculateData, &fa);
+    ui->lbl_min->setText("Min value: " + QString::number(frv->solution_min));
+    ui->lbl_max->setText("Max value: " + QString::number(frv->solution_max));
+    ui->lbl_median->setText("Median value: " + QString::number(frv->solution_median));
+    showData(frv);
+    //draw();
+    entryPoint(cleanData, &fa);
+    free(frv);
 }
 
 QStringList MainWindow::calculateRegions()
