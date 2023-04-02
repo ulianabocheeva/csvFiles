@@ -59,10 +59,9 @@ void MainWindow::on_btn_Load_data_clicked()
             .filename = QstringToCharArray(filename)
         };
         FuncReturningValue* frv = entryPoint(getData, &fa);
-        if (frv==NULL)
+        if (frv->error==FILE_OPEN_ERROR)
             QMessageBox::information(this,"Error","There are problems with opening the file");
-        else
-        {
+        else{
             showData(frv);
             FuncArgument fa2 = {
                 .filename = fa.filename,
@@ -99,14 +98,13 @@ void MainWindow::showData(FuncReturningValue* frv)
                     ui->tb_widget->setItem(i, j, item);
                 }
         }
+        if (tbl.key!=1)
+            tbl={.data = getDataFromTable(),.headers=header,.len=frv->len,.fields_num=frv->fields_num,.key=1};
         if (ui->box_column->count()==0){
-            QStringList regions=calculateRegions();
-            ui->box_region->addItems(regions);
-            ui->box_column->addItems(header);
+            ui->box_region->addItems(getRegions());
+            ui->box_column->addItems(getColumns());
         }
     }
-    if (tbl.key!=1)
-        tbl={.data = getDataFromTable(),.headers=header,.len=frv->len,.fields_num=frv->fields_num,.key=1};
 }
 
 void MainWindow::showDataForCalcMetrics()
@@ -152,26 +150,42 @@ char*** MainWindow::getDataFromTable()
 void MainWindow::on_btn_calc_metrics_clicked()
 {
     showDataForCalcMetrics();
+    size_t index_of_column=(size_t)ui->box_column->currentIndex();
     FuncArgument fa = {
             .filename=QstringToCharArray(ui->lbl_filename->text()),
             .data = getDataFromTable(),
             .region=QstringToCharArray(ui->box_region->currentText()),
-            .column=(size_t)ui->box_column->currentIndex(),
+            .column=index_of_column+calculateColumns(index_of_column),
             .len = (size_t)ui->tb_widget->rowCount(),
             .fields_num = (size_t)ui->tb_widget->columnCount(),
             .region_number=(size_t)ui->box_region->currentIndex()
     };
     FuncReturningValue* frv = entryPoint(calculateData, &fa);
-    ui->lbl_min->setText("Min value: " + QString::number(frv->solution_min));
-    ui->lbl_max->setText("Max value: " + QString::number(frv->solution_max));
-    ui->lbl_median->setText("Median value: " + QString::number(frv->solution_median));
-    showData(frv);
-    //draw();
+    if (frv->error!=CALCULATE_ERROR){
+        ui->lbl_min->setText("Min value: " + QString::number(frv->solution_min));
+        ui->lbl_max->setText("Max value: " + QString::number(frv->solution_max));
+        ui->lbl_median->setText("Median value: " + QString::number(frv->solution_median));
+        showData(frv);
+        //draw();
+    }
+    else
+        QMessageBox::critical(this,"Error","");
     entryPoint(cleanData, &fa);
     free(frv);
 }
 
-QStringList MainWindow::calculateRegions()
+QStringList MainWindow::getColumns(){
+    QStringList columns={};
+    for (size_t i=0;i<(size_t)ui->tb_widget->columnCount();i++)
+    {
+        if ((strcmp((tbl.data[0][i]),"")!=0)||(!isalpha(*(tbl.data[0][i]))))
+            columns.append(tbl.headers.at(i));
+        all_columns.append(tbl.headers.at(i));
+    }
+    return columns;
+}
+
+QStringList MainWindow::getRegions()
 {
     QStringList regions={};
     for (size_t i=0;i<(size_t)ui->tb_widget->rowCount();i++)
@@ -183,6 +197,16 @@ QStringList MainWindow::calculateRegions()
     return regions;
 }
 
+size_t MainWindow::calculateColumns(size_t index_of_column){
+    QStringList box_content=getColumns();
+    size_t count=0;
+    for (size_t i=0;i<=index_of_column;i++)
+    {
+        if (strcmp(QstringToCharArray(all_columns.at(i)),QstringToCharArray(box_content.at(i)))!=0)
+            count++;
+    }
+    return count;
+}
 void MainWindow::draw()
 {
     /*QGraphicsScene *scene = new QGraphicsScene(ui->view_for_draw);
@@ -192,22 +216,4 @@ void MainWindow::draw()
     scene->addLine(0,90,180,90,pen);//x
     scene->addLine(90,0,90,180,pen);//y
     ui->view_for_draw->setScene(scene);*/
-}
-char***MainWindow::memory_alloc_tb(size_t rows,size_t cols)
-{
-    char ***data = (char ***)malloc(rows*sizeof(char**));
-    if (data!=NULL)
-    {
-        for (size_t i = 0; i < rows; i++)
-        {
-            *(data+i) = (char **)malloc(sizeof(char*) * cols);
-            if (*(data+i)!=NULL){
-                for (size_t j = 0; j < cols; j++)
-                {
-                    *(*(data+i)+j)=(char *)malloc(sizeof(char) *STRLEN);
-                }
-            }
-        }
-    }
-    return data;
 }

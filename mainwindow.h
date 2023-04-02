@@ -8,7 +8,6 @@
 //#include <QPainter>
 //#include <QGraphicsScene>
 
-
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -28,7 +27,6 @@ public:
         size_t fields_num;                                // число столбцов в таблице
         size_t key;
     } table;
-    table tbl;
 
 private slots:
 
@@ -41,16 +39,15 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    //QStringList headers;
-    //size_t len;
-    //size_t fields_num;
+    table tbl;
+    QStringList all_columns;
     void showData(FuncReturningValue*);
     void showDataForCalcMetrics();
     void draw();
     char*** getDataFromTable();
-    QStringList calculateColumns();
-    QStringList calculateRegions();
-    char***memory_alloc_tb(size_t rows,size_t cols);
+    size_t calculateColumns(size_t);
+    QStringList getColumns();
+    QStringList getRegions();
 };
 
 #endif // MAINWINDOW_H
