@@ -103,47 +103,6 @@ FuncReturningValue* solve(FuncArgument* fa)
     return frv;
 }
 
-double calc_min(FuncArgument *fa)
-{
-    double min=0;
-    for (size_t i=0;i<fa->len;i++)
-    {
-        if (strcmp(fa->data[i][1],fa->region)==0){
-            if (strcmp(fa->data[i][fa->column],"")!=0){
-                min=atof(fa->data[i][fa->column]);
-                break;
-            }
-        }
-    }
-    return min;
-}
-
-double calc_max(FuncArgument *fa)
-{
-    double max=0;
-    for (size_t i=0;i<fa->len;i++)
-    {
-        if (strcmp(fa->data[i][1],fa->region)==0){
-            if (strcmp(fa->data[i][fa->column],"")!=0){
-                max=atof(fa->data[i][fa->column]);
-                break;
-            }
-        }
-    }
-    return max;
-}
-
-double calc_median(std::vector<double> vectorForMedian,int count_lines)
-{
-    double median;
-    sort(vectorForMedian.begin(), vectorForMedian.end());
-    if((count_lines % 2) ==1)
-        median = vectorForMedian[count_lines/2];
-    else
-        median = (vectorForMedian[count_lines/2-1] + vectorForMedian[count_lines/2]) / 2;
-    return median;
-}
-
 void clean(FuncArgument* args)
 {
     if (args->data != NULL)
@@ -243,6 +202,7 @@ char**memory_alloc_for_2DArray(int n)
     }
     return data;
 }
+
 char**get_headers(FuncArgument* fa)
 {
     size_t counter=0,max_size=1,llen;
@@ -284,4 +244,45 @@ char **strSplit(string line,size_t*counter){
     }
     *counter=num;
     return array;
+}
+
+double calc_min(FuncArgument *fa)
+{
+    double min=0;
+    for (size_t i=0;i<fa->len;i++)
+    {
+        if (strcmp(fa->data[i][1],fa->region)==0){
+            if ((strcmp(fa->data[i][fa->column],"")!=0)&&(!isalpha(*(fa->data[i][fa->column])))){
+                min=atof(fa->data[i][fa->column]);
+                break;
+            }
+        }
+    }
+    return min;
+}
+
+double calc_max(FuncArgument *fa)
+{
+    double max=0;
+    for (size_t i=0;i<fa->len;i++)
+    {
+        if (strcmp(fa->data[i][1],fa->region)==0){
+            if ((strcmp(fa->data[i][fa->column],"")!=0)&&((!isalpha(*(fa->data[i][fa->column]))))){
+                max=atof(fa->data[i][fa->column]);
+                break;
+            }
+        }
+    }
+    return max;
+}
+
+double calc_median(std::vector<double> vectorForMedian,int count_lines)
+{
+    double median;
+    sort(vectorForMedian.begin(), vectorForMedian.end());
+    if((count_lines % 2) ==1)
+        median = vectorForMedian[count_lines/2];
+    else
+        median = (vectorForMedian[count_lines/2-1] + vectorForMedian[count_lines/2]) / 2;
+    return median;
 }

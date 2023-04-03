@@ -10,7 +10,23 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    clean3DArray(tbl.data,tbl.len,tbl.fields_num);
     delete ui;
+}
+
+void MainWindow::clean2DArray(char **arr, size_t size)
+{
+    for (size_t i = 0;i < size; i++)
+        if (strstr((*arr+i),"")==NULL)
+            free(*(arr+i));
+    free(arr);
+}
+
+void MainWindow::clean3DArray(char ***arr, size_t sizeX, size_t sizeY)
+{
+    for (size_t i = 0; i < sizeX; i++)
+        clean2DArray(*(arr+i), sizeY);
+    free(arr);
 }
 
 char* QstringToCharArray(QString qstr)
@@ -178,9 +194,8 @@ QStringList MainWindow::getColumns(){
     QStringList columns={};
     for (size_t i=0;i<(size_t)ui->tb_widget->columnCount();i++)
     {
-        if ((strcmp((tbl.data[0][i]),"")!=0)||(!isalpha(*(tbl.data[0][i]))))
+        if ((strcmp((tbl.data[0][i]),"")!=0)&&(!isalpha(*(tbl.data[0][i]))))
             columns.append(tbl.headers.at(i));
-        all_columns.append(tbl.headers.at(i));
     }
     return columns;
 }
@@ -202,11 +217,12 @@ size_t MainWindow::calculateColumns(size_t index_of_column){
     size_t count=0;
     for (size_t i=0;i<=index_of_column;i++)
     {
-        if (strcmp(QstringToCharArray(all_columns.at(i)),QstringToCharArray(box_content.at(i)))!=0)
+        if (strcmp(QstringToCharArray(tbl.headers.at(i)),QstringToCharArray(box_content.at(i)))!=0)
             count++;
     }
     return count;
 }
+
 void MainWindow::draw()
 {
     /*QGraphicsScene *scene = new QGraphicsScene(ui->view_for_draw);

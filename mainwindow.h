@@ -40,7 +40,8 @@ private slots:
 private:
     Ui::MainWindow *ui;
     table tbl;
-    QStringList all_columns;
+    void clean2DArray(char **arr, size_t size);
+    void clean3DArray(char ***arr, size_t sizeX, size_t sizeY);
     void showData(FuncReturningValue*);
     void showDataForCalcMetrics();
     void draw();
