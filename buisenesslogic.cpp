@@ -87,19 +87,17 @@ FuncReturningValue* solve(FuncArgument* fa)
                 }
             }
         }
+        frv->headers=get_headers(fa);
+        frv->fields_num=fa->fields_num;
+        frv->len=count_lines;
+        frv->data=data_for_chosen_region;
         if (count_ocur_lines!=0){
-            frv->headers=get_headers(fa);
-            frv->fields_num=fa->fields_num;
-            frv->len=count_lines;
-            frv->data=data_for_chosen_region;
             frv->solution_min=min;
             frv->solution_max=max;
             frv->solution_median=calc_median(vectorForMedian,vectorForMedian.size());
         }
-        else{
+        else
             frv->error=CALCULATE_ERROR;
-            clean3DArray(data_for_chosen_region,fa->fields_num,count_lines);
-        }
     }
     return frv;
 }

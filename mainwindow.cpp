@@ -183,11 +183,11 @@ void MainWindow::on_btn_calc_metrics_clicked()
             .region_number=(size_t)ui->box_region->currentIndex()
     };
     FuncReturningValue* frv = entryPoint(calculateData, &fa);
+    showData(frv);
     if (frv->error!=CALCULATE_ERROR){
         ui->lbl_min->setText("Min value: " + QString::number(frv->solution_min));
         ui->lbl_max->setText("Max value: " + QString::number(frv->solution_max));
         ui->lbl_median->setText("Median value: " + QString::number(frv->solution_median));
-        showData(frv);
         //draw();
         entryPoint(cleanData, &fa);
     }
