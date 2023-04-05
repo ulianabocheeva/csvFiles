@@ -54,17 +54,23 @@ QStringList ConvertRowToQTFormat(char **row, size_t size)
 void MainWindow::on_btn_choseFileName_clicked()
 {
     QString filename = QFileDialog::getOpenFileName(this, "Choose file", "", "*.csv");
-    ui->lbl_filename->setText(filename);
-    ui->btn_Load_data->setEnabled(true);
-    ui->btn_calc_metrics->setEnabled(false);
-    ui->box_column->clear();
-    ui->box_region->clear();
-    ui->tb_widget->setColumnCount(0);
-    ui->tb_widget->setRowCount(0);
-    ui->tb_widget->clearContents();
-    ui->lbl_min->setText("Min value: ");
-    ui->lbl_max->setText("Max value: ");
-    ui->lbl_median->setText("Median value: ");
+    if (filename.isEmpty())
+        QMessageBox::information(this,"Error","You should chose file");
+    else
+    {
+        tbl={};
+        ui->lbl_filename->setText(filename);
+        ui->btn_Load_data->setEnabled(true);
+        ui->btn_calc_metrics->setEnabled(false);
+        ui->box_column->clear();
+        ui->box_region->clear();
+        ui->tb_widget->setColumnCount(0);
+        ui->tb_widget->setRowCount(0);
+        ui->tb_widget->clearContents();
+        ui->lbl_min->setText("Min value: ");
+        ui->lbl_max->setText("Max value: ");
+        ui->lbl_median->setText("Median value: ");
+    }
 }
 
 void MainWindow::on_btn_Load_data_clicked()
@@ -183,10 +189,10 @@ void MainWindow::on_btn_calc_metrics_clicked()
         ui->lbl_median->setText("Median value: " + QString::number(frv->solution_median));
         showData(frv);
         //draw();
+        entryPoint(cleanData, &fa);
     }
     else
-        QMessageBox::critical(this,"Error","");
-    entryPoint(cleanData, &fa);
+        QMessageBox::critical(this,"Error","It's impossible to calculate metrics for this column");
     free(frv);
 }
 
@@ -217,7 +223,7 @@ size_t MainWindow::calculateColumns(size_t index_of_column){
     size_t count=0;
     for (size_t i=0;i<=index_of_column;i++)
     {
-        if (strcmp(QstringToCharArray(tbl.headers.at(i)),QstringToCharArray(box_content.at(i)))!=0)
+        if ((strcmp(QstringToCharArray(tbl.headers.at(i+count)),QstringToCharArray(box_content.at(i)))!=0))
             count++;
     }
     return count;

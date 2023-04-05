@@ -69,7 +69,7 @@ FuncReturningValue* getDataFromFile(const char* filename)
 
 FuncReturningValue* solve(FuncArgument* fa)
 {
-    size_t count_lines=0;
+    size_t count_lines=0,count_ocur_lines=0;
     double min=calc_min(fa),max=calc_max(fa),current;
     std::vector<double> vectorForMedian;
     FuncReturningValue *frv = (FuncReturningValue *)malloc(sizeof(FuncReturningValue));
@@ -80,13 +80,14 @@ FuncReturningValue* solve(FuncArgument* fa)
                 *(data_for_chosen_region+count_lines)=fa->data[i];
                 count_lines++;
                 if ((strcmp(fa->data[i][fa->column],"")!=0)&&(!isalpha(*(fa->data[i][fa->column])))){
+                    count_ocur_lines++;
                     current=atof(fa->data[i][fa->column]);
                     current<min? min=current:current>max? max=current:max;
                     vectorForMedian.push_back(current);
                 }
             }
         }
-        if (count_lines!=0){
+        if (count_ocur_lines!=0){
             frv->headers=get_headers(fa);
             frv->fields_num=fa->fields_num;
             frv->len=count_lines;
@@ -96,7 +97,7 @@ FuncReturningValue* solve(FuncArgument* fa)
             frv->solution_median=calc_median(vectorForMedian,vectorForMedian.size());
         }
         else{
-            frv->error=SPLIT_ERROR;
+            frv->error=CALCULATE_ERROR;
             clean3DArray(data_for_chosen_region,fa->fields_num,count_lines);
         }
     }
