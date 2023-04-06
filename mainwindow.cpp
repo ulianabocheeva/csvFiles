@@ -191,8 +191,12 @@ void MainWindow::on_btn_calc_metrics_clicked()
         //draw();
         entryPoint(cleanData, &fa);
     }
-    else
+    else{
         QMessageBox::critical(this,"Error","It's impossible to calculate metrics for this column");
+        ui->lbl_min->setText("Min value: ");
+        ui->lbl_max->setText("Max value: ");
+        ui->lbl_median->setText("Median value: ");
+    }
     free(frv);
 }
 
