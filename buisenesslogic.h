@@ -44,6 +44,7 @@ typedef struct
     size_t len;                                        // число строк в таблице
     size_t fields_num;                                 // число столбцов в таблице
     size_t region_number;                              //индекс региона в списке
+    size_t region_index_at_header;
 } FuncArgument;
 
 

@@ -76,7 +76,7 @@ FuncReturningValue* solve(FuncArgument* fa)
     if (frv!=NULL){
         char ***data_for_chosen_region=memory_alloc_for_3DArray(fa);
         for (size_t i=0;i<fa->len;i++){
-            if (strcmp(fa->data[i][1],fa->region)==0){
+            if (strcmp(fa->data[i][fa->region_index_at_header],fa->region)==0){
                 *(data_for_chosen_region+count_lines)=fa->data[i];
                 count_lines++;
                 if ((strcmp(fa->data[i][fa->column],"")!=0)&&(!isalpha(*(fa->data[i][fa->column])))){
@@ -250,7 +250,7 @@ double calc_min(FuncArgument *fa)
     double min=0;
     for (size_t i=0;i<fa->len;i++)
     {
-        if (strcmp(fa->data[i][1],fa->region)==0){
+        if (strcmp(fa->data[i][fa->region_index_at_header],fa->region)==0){
             if ((strcmp(fa->data[i][fa->column],"")!=0)&&(!isalpha(*(fa->data[i][fa->column])))){
                 min=atof(fa->data[i][fa->column]);
                 break;
@@ -265,7 +265,7 @@ double calc_max(FuncArgument *fa)
     double max=0;
     for (size_t i=0;i<fa->len;i++)
     {
-        if (strcmp(fa->data[i][1],fa->region)==0){
+        if (strcmp(fa->data[i][fa->region_index_at_header],fa->region)==0){
             if ((strcmp(fa->data[i][fa->column],"")!=0)&&((!isalpha(*(fa->data[i][fa->column]))))){
                 max=atof(fa->data[i][fa->column]);
                 break;

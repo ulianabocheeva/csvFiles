@@ -16,9 +16,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::clean2DArray(char **arr, size_t size)
 {
-    for (size_t i = 0;i < size; i++)
+    for (size_t i = 0;i < size; i++){
         if (strstr((*arr+i),"")==NULL)
             free(*(arr+i));
+    }
     free(arr);
 }
 
@@ -35,7 +36,7 @@ char* QstringToCharArray(QString qstr)
     size_t i;
     for (i = 0; i < qstr.size(); i++)
         *(str+i) = qstr.at(i).unicode();
-    str[i] = 0;
+    *(str+i) = 0;
     return str;
 }
 
@@ -52,29 +53,25 @@ void MainWindow::on_btn_choseFileName_clicked()
     QString filename = QFileDialog::getOpenFileName(this, "Choose file", "", "*.csv");
     if (filename.isEmpty())
         QMessageBox::information(this,"Error","You should chose file");
-    else{
-        tbl={};
-        ui->lbl_filename->setText(filename);
-        ui->btn_Load_data->setEnabled(true);
-        ui->btn_calc_metrics->setEnabled(false);
-        ui->box_column->clear();
-        ui->box_region->clear();
-        ui->tb_widget->setColumnCount(0);
-        ui->tb_widget->setRowCount(0);
-        ui->tb_widget->clearContents();
-        ui->lbl_min->setText("Min value: ");
-        ui->lbl_max->setText("Max value: ");
-        ui->lbl_median->setText("Median value: ");
-    }
+    tbl={};
+    ui->lbl_filename->setText(filename);
+    ui->btn_Load_data->setEnabled(true);
+    ui->btn_calc_metrics->setEnabled(false);
+    ui->box_column->clear();
+    ui->box_region->clear();
+    ui->tb_widget->setColumnCount(0);
+    ui->tb_widget->setRowCount(0);
+    ui->tb_widget->clearContents();
+    ui->lbl_min->setText("Min value: ");
+    ui->lbl_max->setText("Max value: ");
+    ui->lbl_median->setText("Median value: ");
 }
 
 void MainWindow::on_btn_Load_data_clicked()
 {
     QString filename=ui->lbl_filename->text();
     if (!filename.isEmpty()){
-        FuncArgument fa = {
-            .filename = QstringToCharArray(filename)
-        };
+        FuncArgument fa = {.filename = QstringToCharArray(filename)};
         FuncReturningValue* frv = entryPoint(getData, &fa);
         if (frv->error==FILE_OPEN_ERROR)
             QMessageBox::information(this,"Error","There are problems with opening the file");
@@ -131,8 +128,7 @@ void MainWindow::showDataForCalcMetrics()
         for (size_t i = 0; i < tbl.len; i++){
             QStringList currentRow = ConvertRowToQTFormat(tbl.data[i], tbl.fields_num);
                 ui->tb_widget->setRowCount(i + 1);
-                for (int j = 0; j < currentRow.count(); j++)
-                {
+                for (int j = 0; j < currentRow.count(); j++){
                     QTableWidgetItem *item = new QTableWidgetItem();
                     item->setText(currentRow.at(j));
                     ui->tb_widget->setItem(i, j, item);
@@ -169,7 +165,8 @@ void MainWindow::on_btn_calc_metrics_clicked()
             .column=index_of_column+calculateColumns(index_of_column),
             .len = (size_t)ui->tb_widget->rowCount(),
             .fields_num = (size_t)ui->tb_widget->columnCount(),
-            .region_number=(size_t)ui->box_region->currentIndex()
+            .region_number=(size_t)ui->box_region->currentIndex(),
+            .region_index_at_header=(size_t)tbl.headers.indexOf("region")
     };
     FuncReturningValue* frv = entryPoint(calculateData, &fa);
     showData(frv);
@@ -201,8 +198,9 @@ QStringList MainWindow::getColumns(){
 QStringList MainWindow::getRegions()
 {
     QStringList regions={};
+    size_t column_num=tbl.headers.indexOf("region");
     for (size_t i=0;i<(size_t)ui->tb_widget->rowCount();i++){
-        QTableWidgetItem *item = ui->tb_widget->item(i,1);
+        QTableWidgetItem *item = ui->tb_widget->item(i,column_num);
         regions.append(item->text());
     }
     regions.removeDuplicates();
