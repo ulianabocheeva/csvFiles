@@ -37,8 +37,11 @@ private slots:
     void on_btn_calc_metrics_clicked();
 
 
+    void on_box_region_currentTextChanged(const QString &arg1);
+
 private:
     Ui::MainWindow *ui;
+    size_t key;
     table tbl;
     void clean2DArray(char **arr, size_t size);
     void clean3DArray(char ***arr, size_t sizeX, size_t sizeY);

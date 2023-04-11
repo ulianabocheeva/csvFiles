@@ -51,8 +51,7 @@ QStringList ConvertRowToQTFormat(char **row, size_t size)
 void MainWindow::on_btn_choseFileName_clicked()
 {
     QString filename = QFileDialog::getOpenFileName(this, "Choose file", "", "*.csv");
-    if (filename.isEmpty())
-        QMessageBox::information(this,"Error","You should chose file");
+    key=0;
     tbl={};
     ui->lbl_filename->setText(filename);
     ui->btn_Load_data->setEnabled(true);
@@ -65,6 +64,8 @@ void MainWindow::on_btn_choseFileName_clicked()
     ui->lbl_min->setText("Min value: ");
     ui->lbl_max->setText("Max value: ");
     ui->lbl_median->setText("Median value: ");
+    if (filename.isEmpty())
+        QMessageBox::critical(this,"Error","You should chose file");
 }
 
 void MainWindow::on_btn_Load_data_clicked()
@@ -84,6 +85,7 @@ void MainWindow::on_btn_Load_data_clicked()
                 .len = frv->len,
                 .fields_num = frv->fields_num
             };
+            key=1;
             entryPoint(cleanData, &fa2);
             free(frv);
         }
@@ -230,3 +232,17 @@ void MainWindow::draw()
     scene->addLine(90,0,90,180,pen);//y
     ui->view_for_draw->setScene(scene);*/
 }
+
+void MainWindow::on_box_region_currentTextChanged(const QString &arg1)
+{
+    if (key==1)
+    {
+        ui->tb_widget->setColumnCount(0);
+        ui->tb_widget->setRowCount(0);
+        ui->tb_widget->clearContents();
+        ui->lbl_min->setText("Min value: ");
+        ui->lbl_max->setText("Max value: ");
+        ui->lbl_median->setText("Median value: ");
+    }
+}
+
