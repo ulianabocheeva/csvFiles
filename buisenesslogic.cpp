@@ -173,15 +173,22 @@ char***memory_alloc_for_3DArray(FuncArgument*fa)
 {
     size_t rows=calculating_region_lines_number(fa);
     char ***data = (char ***)malloc(rows*sizeof(char**));
-    if (data!=NULL)
-    {
-        for (size_t i = 0; i < rows; i++)
-        {
+    if (data!=NULL){
+        for (size_t i = 0; i < rows; i++){
             *(data+i) = (char **)malloc(sizeof(char*) * fa->fields_num);
+            if (*(data+i)==NULL){
+                clean2DArray(*data,i-1);
+                data=NULL;
+                break;
+            }
             if (*(data+i)!=NULL){
-                for (size_t j = 0; j < fa->fields_num; j++)
-                {
+                for (size_t j = 0; j < fa->fields_num; j++){
                     *(*(data+i)+j)=(char *)malloc(sizeof(char) *STRLEN);
+                    if (*(*(data+i)+j)==NULL){
+                        clean3DArray(data,j-1,i);
+                        data=NULL;
+                        break;
+                    }
                 }
             }
         }
@@ -197,6 +204,11 @@ char**memory_alloc_for_2DArray(int n)
         for (int i = 0; i < n; i++)
         {
             *(data+i) = (char *)malloc(sizeof(char) * STRLEN);
+            if (*(data+i)==NULL){
+                clean2DArray(data,i-1);
+                data=NULL;
+                break;
+            }
         }
     }
     return data;
@@ -238,7 +250,7 @@ char **strSplit(string line,size_t*counter){
     char**array=(char **)calloc(count(line.begin(), line.end(), ',')+1, sizeof(char *));
     while (getline(ss, str, ',')){
         *(array+num) = (char *)malloc(sizeof(char) * str.length());
-        strcpy(array[num],str.c_str());
+        strcpy(*(array+num),str.c_str());
         num++;
     }
     *counter=num;

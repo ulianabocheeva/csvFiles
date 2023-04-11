@@ -21,10 +21,10 @@ public:
     ~MainWindow();
     typedef struct
     {
-        char ***data;                                     // данные (функция getData())
-        QStringList headers;                            // заголовки таблицы (функция getData())
-        size_t len;                                       // число строк в таблице
-        size_t fields_num;                                // число столбцов в таблице
+        char ***data;
+        QStringList headers;
+        size_t len;
+        size_t fields_num;
         size_t key;
     } table;
 

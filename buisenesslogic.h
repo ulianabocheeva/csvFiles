@@ -17,7 +17,6 @@ enum FuncType
     getData, // функция чтения данных из csv файла
     calculateData, // функция для вычислений
     cleanData, // освобождение памяти
-    cleanArray
 };
 
 typedef struct

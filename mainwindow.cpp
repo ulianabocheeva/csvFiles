@@ -32,7 +32,7 @@ void MainWindow::clean3DArray(char ***arr, size_t sizeX, size_t sizeY)
 
 char* QstringToCharArray(QString qstr)
 {
-    char *str = (char*)malloc(sizeof(char)*(qstr.size() + 1));
+    char *str = (char*)malloc(sizeof(char)*(qstr.size() + 1));//+1 потому что в уонце добавляется 0
     size_t i;
     for (i = 0; i < qstr.size(); i++)
         *(str+i) = qstr.at(i).unicode();
@@ -111,7 +111,7 @@ void MainWindow::showData(FuncReturningValue* frv)
         }
         if (tbl.key!=1)
             tbl={.data = getDataFromTable(),.headers=header,.len=frv->len,.fields_num=frv->fields_num,.key=1};
-        if (ui->box_column->count()==0){
+        if ((ui->box_column->count()==0)&&(!getRegions().empty())){
             ui->box_region->addItems(getRegions());
             ui->box_column->addItems(getColumns());
         }
@@ -127,12 +127,12 @@ void MainWindow::showDataForCalcMetrics()
         ui->tb_widget->setRowCount(0);
         for (size_t i = 0; i < tbl.len; i++){
             QStringList currentRow = ConvertRowToQTFormat(tbl.data[i], tbl.fields_num);
-                ui->tb_widget->setRowCount(i + 1);
-                for (int j = 0; j < currentRow.count(); j++){
-                    QTableWidgetItem *item = new QTableWidgetItem();
-                    item->setText(currentRow.at(j));
-                    ui->tb_widget->setItem(i, j, item);
-                }
+            ui->tb_widget->setRowCount(i + 1);
+            for (int j = 0; j < currentRow.count(); j++){
+                QTableWidgetItem *item = new QTableWidgetItem();
+                item->setText(currentRow.at(j));
+                ui->tb_widget->setItem(i, j, item);
+            }
         }
     }
 }
@@ -143,7 +143,8 @@ char*** MainWindow::getDataFromTable()
     for (size_t i = 0; i < (size_t)ui->tb_widget->rowCount(); i++)
     {
         *(data+i) = (char **)malloc(sizeof(char*) * ui->tb_widget->columnCount());
-        for (size_t j = 0; j < (size_t)ui->tb_widget->columnCount(); j++){
+        for (size_t j = 0; j < (size_t)ui->tb_widget->columnCount(); j++)
+        {
             //Получаем значение в i-ой строке и j-ом столбце
             QTableWidgetItem *item = ui->tb_widget->item(i,j);
             //Приводим значение ячейки к стандартному типу строки
@@ -198,12 +199,14 @@ QStringList MainWindow::getColumns(){
 QStringList MainWindow::getRegions()
 {
     QStringList regions={};
-    size_t column_num=tbl.headers.indexOf("region");
-    for (size_t i=0;i<(size_t)ui->tb_widget->rowCount();i++){
-        QTableWidgetItem *item = ui->tb_widget->item(i,column_num);
-        regions.append(item->text());
+    int column_num=tbl.headers.indexOf("region");
+    if (column_num!=-1){
+        for (size_t i=0;i<(size_t)ui->tb_widget->rowCount();i++){
+            QTableWidgetItem *item = ui->tb_widget->item(i,column_num);
+            regions.append(item->text());
+        }
+        regions.removeDuplicates();
     }
-    regions.removeDuplicates();
     return regions;
 }
 
