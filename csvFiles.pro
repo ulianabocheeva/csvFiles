@@ -10,11 +10,13 @@ CONFIG += c++17
 
 SOURCES += \
     buisenesslogic.cpp \
+    functionui.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     buisenesslogic.h \
+    functionui.h \
     mainwindow.h
 
 FORMS += \

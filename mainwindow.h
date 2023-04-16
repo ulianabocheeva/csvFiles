@@ -3,8 +3,6 @@
 
 #include <QMainWindow>
 #include "buisenesslogic.h"
-#include "QMessageBox"
-#include <QFileDialog>
 //#include <QPainter>
 //#include <QGraphicsScene>
 
@@ -39,19 +37,23 @@ private slots:
 
     void on_box_region_currentTextChanged(const QString &arg1);
 
+    void on_box_column_currentTextChanged(const QString &arg1);
+
 private:
     Ui::MainWindow *ui;
     size_t key;
     table tbl;
+    void showData(FuncReturningValue* frv);
     void clean2DArray(char **arr, size_t size);
     void clean3DArray(char ***arr, size_t sizeX, size_t sizeY);
-    void showData(FuncReturningValue*);
     void showDataForCalcMetrics();
     void draw();
     char*** getDataFromTable();
     size_t calculateColumns(size_t);
     QStringList getColumns();
     QStringList getRegions();
+    char*QstringToCharArray(QString qstr);
+    QStringList ConvertRowToQTFormat(char **row, size_t size);
 };
 
 #endif // MAINWINDOW_H

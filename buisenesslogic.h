@@ -1,10 +1,4 @@
 #include <iostream>
-#include <string.h>
-#include <fstream>
-#include <sstream>
-#include <stdlib.h>
-#include <vector>
-#include <algorithm>
 #define STRLEN 50
 #define MEMORY_ERROR 1
 #define FILE_OPEN_ERROR 1
@@ -37,7 +31,6 @@ typedef struct
     char* filename;                                    // имя файла (функция getData())
     char ***data;                                      // данные (функция calculateData())
     char **headers;                                    // заголовки таблицы (функция getData())
-    char **solution;                                   // результат вычислений (для освобождения памяти)
     char *region;                                      //регион по которому вычисляются метрики
     size_t column;                                     //колонка по которой вычисляются метрики
     size_t len;                                        // число строк в таблице
