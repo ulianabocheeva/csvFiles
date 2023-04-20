@@ -17,14 +17,6 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    typedef struct
-    {
-        char ***data;
-        QStringList headers;
-        size_t len;
-        size_t fields_num;
-        size_t key;
-    } table;
 
 private slots:
 
@@ -34,19 +26,17 @@ private slots:
 
     void on_btn_calc_metrics_clicked();
 
+    void on_box_region_currentTextChanged();
 
-    void on_box_region_currentTextChanged(const QString &arg1);
-
-    void on_box_column_currentTextChanged(const QString &arg1);
+    void on_box_column_currentTextChanged();
 
 private:
     Ui::MainWindow *ui;
     size_t key;
-    table tbl;
+    QStringList headers;
     void showData(FuncReturningValue* frv);
     void clean2DArray(char **arr, size_t size);
     void clean3DArray(char ***arr, size_t sizeX, size_t sizeY);
-    void showDataForCalcMetrics();
     void draw();
     char*** getDataFromTable();
     size_t calculateColumns(size_t);

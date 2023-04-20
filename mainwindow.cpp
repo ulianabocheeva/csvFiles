@@ -12,8 +12,6 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    FuncArgument fa = {.data=tbl.data,.len=tbl.len,.fields_num=tbl.fields_num};
-    entryPoint(cleanData,&fa);
     delete ui;
 }
 
@@ -21,7 +19,6 @@ void MainWindow::on_btn_choseFileName_clicked()
 {
     QString filename = QFileDialog::getOpenFileName(this, "Choose file", "", "*.csv");
     key=0;
-    tbl={};
     ui->lbl_filename->setText(filename);
     ui->btn_Load_data->setEnabled(true);
     ui->btn_calc_metrics->setEnabled(false);
@@ -65,7 +62,7 @@ void MainWindow::on_btn_Load_data_clicked()
 
 void MainWindow::on_btn_calc_metrics_clicked()
 {
-    showDataForCalcMetrics();
+    on_btn_Load_data_clicked();
     size_t index_of_column=(size_t)ui->box_column->currentIndex();
     FuncArgument fa = {
             .filename=QstringToCharArray(ui->lbl_filename->text()),
@@ -75,7 +72,7 @@ void MainWindow::on_btn_calc_metrics_clicked()
             .len = (size_t)ui->tb_widget->rowCount(),
             .fields_num = (size_t)ui->tb_widget->columnCount(),
             .region_number=(size_t)ui->box_region->currentIndex(),
-            .region_index_at_header=(size_t)tbl.headers.indexOf("region")
+            .region_index_at_header=(size_t)headers.indexOf("region")
     };
     FuncReturningValue* frv = entryPoint(calculateData, &fa);
     showData(frv);
@@ -95,7 +92,7 @@ void MainWindow::on_btn_calc_metrics_clicked()
     free(frv);
 }
 
-void MainWindow::on_box_region_currentTextChanged(const QString &arg1)
+void MainWindow::on_box_region_currentTextChanged()
 {
     if (key==1)
     {
@@ -109,7 +106,7 @@ void MainWindow::on_box_region_currentTextChanged(const QString &arg1)
 }
 
 
-void MainWindow::on_box_column_currentTextChanged(const QString &arg1)
+void MainWindow::on_box_column_currentTextChanged()
 {
     if (key==1)
     {

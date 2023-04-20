@@ -1,4 +1,3 @@
-#include "functionui.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -20,25 +19,6 @@ QStringList MainWindow::ConvertRowToQTFormat(char **row, size_t size)
     return qsl;
 }
 
-void MainWindow::showDataForCalcMetrics()
-{
-    ui->tb_widget->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    ui->tb_widget-> setColumnCount(tbl.fields_num);
-    ui->tb_widget->setHorizontalHeaderLabels(tbl.headers);
-    if (tbl.data != NULL){
-        ui->tb_widget->setRowCount(0);
-        for (size_t i = 0; i < tbl.len; i++){
-            QStringList currentRow = ConvertRowToQTFormat(tbl.data[i], tbl.fields_num);
-            ui->tb_widget->setRowCount(i + 1);
-            for (int j = 0; j < currentRow.count(); j++){
-                QTableWidgetItem *item = new QTableWidgetItem();
-                item->setText(currentRow.at(j));
-                ui->tb_widget->setItem(i, j, item);
-            }
-        }
-    }
-}
-
 void MainWindow::showData(FuncReturningValue* frv)
 {
     ui->tb_widget->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -56,8 +36,7 @@ void MainWindow::showData(FuncReturningValue* frv)
                     ui->tb_widget->setItem(i, j, item);
                 }
         }
-        if (tbl.key!=1)
-            tbl={.data = getDataFromTable(),.headers=header,.len=frv->len,.fields_num=frv->fields_num,.key=1};
+        headers=header;
         if ((ui->box_column->count()==0)&&(!getRegions().empty())){
             ui->box_region->addItems(getRegions());
             ui->box_column->addItems(getColumns());
@@ -86,8 +65,10 @@ char*** MainWindow::getDataFromTable()
 QStringList MainWindow::getColumns(){
     QStringList columns={};
     for (size_t i=0;i<(size_t)ui->tb_widget->columnCount();i++){
-        if ((strcmp((tbl.data[0][i]),"")!=0)&&(!isalpha(*(tbl.data[0][i]))))
-            columns.append(tbl.headers.at(i));
+        QTableWidgetItem *item = ui->tb_widget->item(0,i);
+        char* str = QstringToCharArray(item->text());
+        if ((strcmp((str),"")!=0)&&(!isalpha(*(str))))
+            columns.append(headers.at(i));
     }
     return columns;
 }
@@ -95,7 +76,7 @@ QStringList MainWindow::getColumns(){
 QStringList MainWindow::getRegions()
 {
     QStringList regions={};
-    int column_num=tbl.headers.indexOf("region");
+    int column_num=headers.indexOf("region");
     if (column_num!=-1){
         for (size_t i=0;i<(size_t)ui->tb_widget->rowCount();i++){
             QTableWidgetItem *item = ui->tb_widget->item(i,column_num);
@@ -110,7 +91,7 @@ size_t MainWindow::calculateColumns(size_t index_of_column){
     QStringList box_content=getColumns();
     size_t count=0;
     for (size_t i=0;i<=index_of_column;i++){
-        if ((strcmp(QstringToCharArray(tbl.headers.at(i+count)),QstringToCharArray(box_content.at(i)))!=0))
+        if ((strcmp(QstringToCharArray(headers.at(i+count)),QstringToCharArray(box_content.at(i)))!=0))
             count++;
     }
     return count;
