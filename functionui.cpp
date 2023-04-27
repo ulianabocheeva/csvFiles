@@ -96,3 +96,17 @@ size_t MainWindow::calculateColumns(size_t index_of_column){
     }
     return count;
 }
+
+/*QStringList MainWindow::getYears()
+{
+    QStringList years={};
+    int column_num=headers.indexOf("year");
+    if (column_num!=-1){
+        for (size_t i=0;i<(size_t)ui->tb_widget->rowCount();i++){
+            QTableWidgetItem *item = ui->tb_widget->item(i,column_num);
+            years.append(item->text());
+        }
+    }
+    return years;
+}*/
+

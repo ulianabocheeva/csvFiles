@@ -3,8 +3,6 @@
 
 #include <QMainWindow>
 #include "buisenesslogic.h"
-//#include <QPainter>
-//#include <QGraphicsScene>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -37,13 +35,14 @@ private:
     void showData(FuncReturningValue* frv);
     void clean2DArray(char **arr, size_t size);
     void clean3DArray(char ***arr, size_t sizeX, size_t sizeY);
-    void draw();
+    void draw(FuncReturningValue*frv);
     char*** getDataFromTable();
     size_t calculateColumns(size_t);
     QStringList getColumns();
     QStringList getRegions();
     char*QstringToCharArray(QString qstr);
     QStringList ConvertRowToQTFormat(char **row, size_t size);
+    QStringList getYears();
 };
 
 #endif // MAINWINDOW_H

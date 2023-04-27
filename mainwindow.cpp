@@ -2,6 +2,8 @@
 #include "ui_mainwindow.h"
 #include "QMessageBox"
 #include <QFileDialog>
+#include <QPainter>
+#include <QGraphicsScene>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -80,7 +82,7 @@ void MainWindow::on_btn_calc_metrics_clicked()
         ui->lbl_min->setText("Min value: " + QString::number(frv->solution_min));
         ui->lbl_max->setText("Max value: " + QString::number(frv->solution_max));
         ui->lbl_median->setText("Median value: " + QString::number(frv->solution_median));
-        //draw();
+        //draw(frv);
         entryPoint(cleanData, &fa);
     }
     else{
@@ -116,13 +118,47 @@ void MainWindow::on_box_column_currentTextChanged()
     }
 }
 
-void MainWindow::draw()
+/*void MainWindow::draw(FuncReturningValue*frv)
 {
-    /*QGraphicsScene *scene = new QGraphicsScene(ui->view_for_draw);
-    //Это как раз создана сцена. Сцена - это класс для работы с 2D графикой.
-    //Теперь, раз это график, то построим координатные оси X и Y.
-    QPen pen(Qt::black);//Просто выбираем цвет для карандашика
-    scene->addLine(0,90,180,90,pen);//x
-    scene->addLine(90,0,90,180,pen);//y
-    ui->view_for_draw->setScene(scene);*/
-}
+    QStringList years = getYears();
+    QStringList nums = getNums();
+
+    int pictHeight = 350; // задаем высоту картинки
+    int pictWidth = 370; // и её ширину
+    int leftX = years[0].toInt();
+    int rightX = years[years.length() - 1].toInt(); // и начальные значения границ
+
+    QPixmap graph(pictWidth, pictHeight); // создаем саму картинку
+    QPainter paint; // и пэинтер
+    paint.begin(&graph); // запускаем отрисовку
+    paint.eraseRect(0,0,370,350); // очищаем рисунок
+    paint.drawLine(0, pictHeight/2, pictWidth, pictHeight/2); // ox
+    paint.drawLine(0, 0, 0, pictHeight); // oy
+
+    double mX = pictWidth / (rightX - leftX);
+    double mY = pictHeight / (ui->lbl_max->text().toDouble() - ui->lbl_min->text().toDouble());
+    double h = 1/mX;
+
+    paint.setPen(QPen(Qt::black,3));
+    for(double i = 0; i <= pictWidth; i += mX) // рисуем черточки на координатой оси
+        paint.drawPoint(i, pictHeight/2);
+    for(double i = 0; i <= pictHeight; i += mY) // рисуем черточки на координатой оси
+        paint.drawPoint(0, i);
+
+    paint.setPen (QPen(QColor(0,100,50,255), 4));
+    QList points = {QPoint(0, pictHeight / 2 - nums[0].toInt())};
+    double xCur, yCur;
+    double x = 0;
+    for (int i = 0; i < nums.length(); i++){
+        if (x >= years.length() + h/2)
+            break;
+        xCur = mX * x;
+        yCur = pictHeight - mY*(nums[i].toDouble() - ui->lbl_min->text().toDouble());
+        points.append(QPoint(xCur, yCur));
+        x+=h;
+    }
+    paint.drawPoints(points);
+
+    paint.end(); // заканчиваем рисование
+    ui->lbl_graphic->setPixmap(graph); // и помещаем рисунок на форму
+}*/

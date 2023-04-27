@@ -85,7 +85,7 @@
       <x>360</x>
       <y>30</y>
       <width>751</width>
-      <height>611</height>
+      <height>301</height>
      </rect>
     </property>
    </widget>
@@ -209,6 +209,22 @@
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QLabel" name="lbl_graphic">
+    <property name="geometry">
+     <rect>
+      <x>360</x>
+      <y>350</y>
+      <width>771</width>
+      <height>291</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Box</enum>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
    </widget>
   </widget>
  </widget>
