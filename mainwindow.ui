@@ -223,7 +223,7 @@
      <enum>QFrame::Box</enum>
     </property>
     <property name="text">
-     <string/>
+     <string>label for drawing</string>
     </property>
    </widget>
   </widget>
